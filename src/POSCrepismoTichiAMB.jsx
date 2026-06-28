@@ -1516,7 +1516,7 @@ function Finanzas(props){
   var tTarjetaMigue=gastos.filter(function(g){return g.tipo==="tarjeta_migue";}).reduce(function(s,g){return s+g.monto;},0);
   var tTarjetaAngel=gastos.filter(function(g){return g.tipo==="tarjeta_angel";}).reduce(function(s,g){return s+g.monto;},0);
   var tPersonal=gastos.filter(function(g){return g.tipo==="personal";}).reduce(function(s,g){return s+g.monto;},0);
-  var tOtro=gastos.filter(function(g){return g.tipo==="otro";}).reduce(function(s,g){return s+g.monto;},0);
+  var tOtro=gastosFil.filter(function(g){return g.tipo==="otro";}).reduce(function(s,g){return s+g.monto;},0);
 
   // Estadisticas: productos mas vendidos
   var conteoProductos={};
@@ -2666,7 +2666,7 @@ function FinanzasGlobal(props){
   var ef=ventasFil.filter(function(v){return v.metodo==="efectivo";}).reduce(function(s,v){return s+v.total;},0);
   var tr=ventasFil.filter(function(v){return v.metodo==="transferencia";}).reduce(function(s,v){return s+v.total;},0);
   var cl=ventasFil.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.netoClip;},0);
-  var tg=gastosFil.reduce(function(s,g){return s+g.monto;},0);
+  var tg=gastosFil.filter(function(g){return g.desc!=="Comision Mercado Libre";}).reduce(function(s,g){return s+g.monto;},0);
   var util=tv-tg-tc-tDidiComision-tComisionML;
   var margen=tv>0?(util/tv)*100:0;
 
