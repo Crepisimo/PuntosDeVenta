@@ -1599,7 +1599,7 @@ function Finanzas(props){
     re("div",{style:{fontSize:17,fontWeight:900,color:C.dark,marginBottom:14}},"Finanzas - Crepisimo Centro"),
     re("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}},
       Card("Ventas",fmt(tv),C.green,C.greenL),
-      Card("Egresos",fmt(tg+tc+tDidiComision),C.red,C.redL),
+      Card("Egresos",fmt(tg+tc+tDidiComision+tComisionML),C.red,C.redL),
       Card("Utilidad",fmt(util),util>=0?C.green:C.red,util>=0?C.greenL:C.redL),
       Card("Margen",margen.toFixed(1)+"%",margen>=15?C.green:C.orange,C.amberL)
     ),
@@ -2833,7 +2833,7 @@ function FinanzasGlobal(props){
     tab==="resumen"?re("div",null,
       re("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}},
         Card("Ventas totales",fmt(tv),C.green,C.greenL),
-        Card("Egresos",fmt(tg+tc+tDidiComision),C.red,C.redL),
+        Card("Egresos",fmt(tg+tc+tDidiComision+tComisionML),C.red,C.redL),
         Card("Utilidad",fmt(util),util>=0?C.green:C.red,util>=0?C.greenL:C.redL),
         Card("Margen",margen.toFixed(1)+"%",margen>=15?C.green:C.orange,C.amberL)
       ),
