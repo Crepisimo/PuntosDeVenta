@@ -1470,8 +1470,8 @@ function Finanzas(props){
   var s2=useState("ventas_dia");var graficaActiva=s2[0];var setGraficaActiva=s2[1];
 
   var tv=ventas.reduce(function(s,v){return s+v.total;},0);
-  var tg=gastos.reduce(function(s,g){return s+g.monto;},0);
-  var tc=ventas.reduce(function(s,v){return s+v.comisionClip;},0);
+  var tg=gastos.filter(function(g){return g.desc!=="Comision Mercado Libre";}).reduce(function(s,g){return s+g.monto;},0);
+  var tc=ventas.filter(function(v){return v.estadoPago!=="reembolsado";}).reduce(function(s,v){return s+v.comisionClip;},0);
   var tDidiComision=ventas.reduce(function(s,v){return s+(v.comisionDidi||0);},0);
   var tDidiNeto=ventas.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
   var tDidiTotal=ventas.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+v.total;},0);
@@ -1512,10 +1512,10 @@ function Finanzas(props){
     return s+(cp.monto/cp.cantidad)*(ins.stock||0);
   },0);
 
-  var tColaboradores=gastos.filter(function(g){return g.tipo==="colaborador";}).reduce(function(s,g){return s+g.monto;},0);
-  var tTarjetaMigue=gastos.filter(function(g){return g.tipo==="tarjeta_migue";}).reduce(function(s,g){return s+g.monto;},0);
-  var tTarjetaAngel=gastos.filter(function(g){return g.tipo==="tarjeta_angel";}).reduce(function(s,g){return s+g.monto;},0);
-  var tPersonal=gastos.filter(function(g){return g.tipo==="personal";}).reduce(function(s,g){return s+g.monto;},0);
+  var tColaboradores=gastosFil.filter(function(g){return g.tipo==="colaborador";}).reduce(function(s,g){return s+g.monto;},0);
+  var tTarjetaMigue=gastosFil.filter(function(g){return g.tipo==="tarjeta_migue";}).reduce(function(s,g){return s+g.monto;},0);
+  var tTarjetaAngel=gastosFil.filter(function(g){return g.tipo==="tarjeta_angel";}).reduce(function(s,g){return s+g.monto;},0);
+  var tPersonal=gastosFil.filter(function(g){return g.tipo==="personal";}).reduce(function(s,g){return s+g.monto;},0);
   var tOtro=gastosFil.filter(function(g){return g.tipo==="otro";}).reduce(function(s,g){return s+g.monto;},0);
 
   // Estadisticas: productos mas vendidos
