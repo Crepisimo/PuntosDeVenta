@@ -1470,7 +1470,7 @@ function Finanzas(props){
   var s2=useState("ventas_dia");var graficaActiva=s2[0];var setGraficaActiva=s2[1];
 
   var tv=ventas.reduce(function(s,v){return s+v.total;},0);
-  var tg=gastos.filter(function(g){return g.desc!=="Comision Mercado Libre";}).reduce(function(s,g){return s+g.monto;},0);
+  var tg=gastos.filter(function(g){return g.desc!=="Comision Mercado Libre"&&g.tipo!=="transf_tarjeta";}).reduce(function(s,g){return s+g.monto;},0);
   var tc=ventas.filter(function(v){return v.estadoPago!=="reembolsado";}).reduce(function(s,v){return s+v.comisionClip;},0);
   var tDidiComision=ventas.reduce(function(s,v){return s+(v.comisionDidi||0);},0);
   var tDidiNeto=ventas.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
@@ -2641,16 +2641,16 @@ function FinanzasGlobal(props){
   // Saldos por origen de dinero
   // Efectivo
   var ingEfectivo=ventasFil.filter(function(v){return v.metodo==="efectivo";}).reduce(function(s,v){return s+v.total;},0);
-  var egreEfectivo=gastosFil.filter(function(g){return g.metodoPago==="efectivo"||(!g.metodoPago&&g.seccion==="caja"&&g.tipo!=="operativo")||g.tipo==="colaborador";}).reduce(function(s,g){return s+g.monto;},0);
+  var egreEfectivo=gastosFil.filter(function(g){return g.tipo!=="transf_tarjeta"&&(g.metodoPago==="efectivo"||(!g.metodoPago&&g.seccion==="caja"&&g.tipo!=="operativo")||g.tipo==="colaborador");}).reduce(function(s,g){return s+g.monto;},0);
   // Tarjeta Migue: Clip Migue + Didi cobrado - gastos T.Migue
   var ingMigue=ventasFil.filter(function(v){return (v.metodo==="clip"&&v.terminalClip==="migue")||(v.metodo==="didi"&&v.estadoPago==="pagado");}).reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
-  var egreMigue=gastosFil.filter(function(g){return g.metodoPago==="tarjeta_migue";}).reduce(function(s,g){return s+g.monto;},0);
+  var egreMigue=gastosFil.filter(function(g){return g.tipo!=="transf_tarjeta"&&g.metodoPago==="tarjeta_migue";}).reduce(function(s,g){return s+g.monto;},0);
   // Tarjeta Angel: Clip Angel + Transferencias + ML cobrado - gastos T.Angel
   var ingAngel=ventasFil.filter(function(v){return (v.metodo==="clip"&&v.terminalClip==="angel")||(v.metodo==="transferencia")||(v.metodo==="mercadolibre"&&v.estadoPago==="pagado");}).reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
-  var egreAngel=gastosFil.filter(function(g){return g.metodoPago==="tarjeta_angel";}).reduce(function(s,g){return s+g.monto;},0);
+  var egreAngel=gastosFil.filter(function(g){return g.tipo!=="transf_tarjeta"&&g.metodoPago==="tarjeta_angel";}).reduce(function(s,g){return s+g.monto;},0);
   // Transferencias entre tarjetas
-  var transfMigueAAngel=gastosFil.filter(function(g){return g.tipo==="transf_tarjeta"&&g.desc&&(g.desc.indexOf("Migue->")>=0||g.desc.indexOf("T.Migue->")>=0);}).reduce(function(s,g){return s+g.monto;},0);
-  var transfAngelAMigue=gastosFil.filter(function(g){return g.tipo==="transf_tarjeta"&&g.desc&&(g.desc.indexOf("->Migue")>=0||g.desc.indexOf("->T.Migue")>=0)&&(g.desc.indexOf("Angel->")>=0||g.desc.indexOf("T.Angel->")>=0);}).reduce(function(s,g){return s+g.monto;},0);
+  var transfMigueAAngel=gastosFil.filter(function(g){return g.tipo==="transf_tarjeta"&&g.desc&&g.desc.indexOf("T.Migue->")>=0;}).reduce(function(s,g){return s+g.monto;},0);
+  var transfAngelAMigue=gastosFil.filter(function(g){return g.tipo==="transf_tarjeta"&&g.desc&&g.desc.indexOf("T.Angel->T.Migue")>=0;}).reduce(function(s,g){return s+g.monto;},0);
   var saldoEfectivo=ingEfectivo-egreEfectivo;
   var saldoMigue=ingMigue-egreMigue-transfMigueAAngel+transfAngelAMigue;
   var saldoAngel=ingAngel-egreAngel-transfAngelAMigue+transfMigueAAngel;
@@ -2666,7 +2666,7 @@ function FinanzasGlobal(props){
   var ef=ventasFil.filter(function(v){return v.metodo==="efectivo";}).reduce(function(s,v){return s+v.total;},0);
   var tr=ventasFil.filter(function(v){return v.metodo==="transferencia";}).reduce(function(s,v){return s+v.total;},0);
   var cl=ventasFil.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.netoRecibido;},0);
-  var tg=gastosFil.filter(function(g){return g.desc!=="Comision Mercado Libre";}).reduce(function(s,g){return s+g.monto;},0);
+  var tg=gastosFil.filter(function(g){return g.desc!=="Comision Mercado Libre"&&g.tipo!=="transf_tarjeta";}).reduce(function(s,g){return s+g.monto;},0);
   var util=tv-tg-tc-tDidiComision-tComisionML;
   var margen=tv>0?(util/tv)*100:0;
 
@@ -2795,8 +2795,9 @@ function FinanzasGlobal(props){
         re("button",{onClick:function(){
           var monto=parseFloat(trv.monto);
           if(!monto||monto<=0||trv.de===trv.para)return;
-          var deLabel=trv.de.replace("tarjeta_","T.").replace("efectivo","Efectivo");
-          var paraLabel=trv.para.replace("tarjeta_","T.").replace("efectivo","Efectivo");
+          function labelTarjeta(t){return t==="tarjeta_migue"?"T.Migue":t==="tarjeta_angel"?"T.Angel":t==="efectivo"?"Efectivo":t;}
+          var deLabel=labelTarjeta(trv.de);
+          var paraLabel=labelTarjeta(trv.para);
           var desc=deLabel+"->"+paraLabel+(trv.desc?" - "+trv.desc:"");
           onGasto({tipo:"transf_tarjeta",seccion:"externo",monto:monto,desc:desc,metodoPago:trv.de,timestamp:new Date().toISOString()});
           setModalTransf(false);
