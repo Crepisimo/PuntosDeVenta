@@ -1599,7 +1599,7 @@ function Finanzas(props){
     re("div",{style:{fontSize:17,fontWeight:900,color:C.dark,marginBottom:14}},"Finanzas - Crepisimo Centro"),
     re("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}},
       Card("Ventas",fmt(tv),C.green,C.greenL),
-      Card("Egresos",fmt(tg+tc+tDidiComision+tComisionML),C.red,C.redL),
+      Card("Egresos",fmt(tg+tc+tDidiComision),C.red,C.redL),
       Card("Utilidad",fmt(util),util>=0?C.green:C.red,util>=0?C.greenL:C.redL),
       Card("Margen",margen.toFixed(1)+"%",margen>=15?C.green:C.orange,C.amberL)
     ),
@@ -1665,7 +1665,7 @@ function Finanzas(props){
         tComisionML>0?Row("Comision Mercado Libre",tComisionML,C.red):null,
       re("div",{style:{display:"flex",justifyContent:"space-between",padding:"10px 0",fontSize:14,borderTop:"2px solid #f0f0f0",marginTop:4}},
         re("span",{style:{fontWeight:800,color:C.dark}},"Total egresos"),
-        re("span",{style:{fontWeight:900,color:C.red}},fmt(tg+tc+tDidiComision+tComisionML))
+        re("span",{style:{fontWeight:900,color:C.red}},fmt(tg+tc+tDidiComision))
       )
     ),
 
@@ -2269,9 +2269,7 @@ function POSTichi(props){
     }
     var ventaObjT=Object.assign({},info,{tienda:tiendaId,total:totalDisplay,items:orden,timestamp:new Date().toISOString()});
     onVenta(ventaObjT);
-    if(info.metodo==="mercadolibre"&&info.comisionML>0){
-      onGasto({tienda:tiendaId,seccion:"caja",tipo:"operativo",monto:info.comisionML,desc:"Comision Mercado Libre",timestamp:new Date().toISOString()});
-    }
+
     window.imprimirTicket&&window.imprimirTicket(ventaObjT,tiendaId);
     setOrden([]);setModalCobro(false);
     setExito(true);setTimeout(function(){setExito(false);},2000);
@@ -2661,7 +2659,7 @@ function FinanzasGlobal(props){
   var tvSA=ventasFil.filter(function(v){return v.tienda==="sanantonio";}).reduce(function(s,v){return s+v.total;},0);
   var tc=ventasFil.reduce(function(s,v){return s+v.comisionClip;},0);
   var tDidiComision=ventasFil.reduce(function(s,v){return s+(v.comisionDidi||0);},0);
-  var tComisionML=gastosFil.filter(function(g){return g.desc==="Comision Mercado Libre";}).reduce(function(s,g){return s+g.monto;},0);
+  var tComisionML=ventasFil.filter(function(v){return v.metodo==="mercadolibre";}).reduce(function(s,v){return s+(v.comisionML||0);},0);
   var tDidiNeto=ventasFil.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+(v.netoClip||v.total);},0);
   var tDidiTotal=ventasFil.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+v.total;},0);
   var tDidiPorPagar=ventasFil.filter(function(v){return v.metodo==="didi"&&v.estadoPago==="por_pagar";}).reduce(function(s,v){return s+v.total;},0);
@@ -2835,7 +2833,7 @@ function FinanzasGlobal(props){
     tab==="resumen"?re("div",null,
       re("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}},
         Card("Ventas totales",fmt(tv),C.green,C.greenL),
-        Card("Egresos",fmt(tg+tc+tDidiComision+tComisionML),C.red,C.redL),
+        Card("Egresos",fmt(tg+tc+tDidiComision),C.red,C.redL),
         Card("Utilidad",fmt(util),util>=0?C.green:C.red,util>=0?C.greenL:C.redL),
         Card("Margen",margen.toFixed(1)+"%",margen>=15?C.green:C.orange,C.amberL)
       ),
@@ -2927,7 +2925,7 @@ function FinanzasGlobal(props){
           ),
           re("div",{style:{background:"#FFEBEE",borderRadius:12,padding:"14px 10px",textAlign:"center"}},
             re("div",{style:{fontSize:11,color:C.red,fontWeight:700,marginBottom:4}},"💸 EGRESOS"),
-            re("div",{style:{fontSize:18,fontWeight:900,color:C.red}},fmt(tg+tc+tDidiComision+tComisionML))
+            re("div",{style:{fontSize:18,fontWeight:900,color:C.red}},fmt(tg+tc+tDidiComision))
           ),
           re("div",{style:{background:(tv-tg-tc-tDidiComision)>=0?"#E3F2FD":"#FFEBEE",borderRadius:12,padding:"14px 10px",textAlign:"center"}},
             re("div",{style:{fontSize:11,color:"#1565C0",fontWeight:700,marginBottom:4}},"📈 UTILIDAD"),
@@ -3029,7 +3027,7 @@ function FinanzasGlobal(props){
         tComisionML>0?Row("Comision Mercado Libre",tComisionML,C.red):null,
         re("div",{style:{display:"flex",justifyContent:"space-between",padding:"10px 0",fontSize:14,borderTop:"2px solid #f0f0f0",marginTop:4}},
           re("span",{style:{fontWeight:800,color:C.dark}},"Total egresos"),
-          re("span",{style:{fontWeight:900,color:C.red}},fmt(tg+tc+tDidiComision+tComisionML))
+          re("span",{style:{fontWeight:900,color:C.red}},fmt(tg+tc+tDidiComision))
         )
       ),
       re("div",{style:{background:"#fff",borderRadius:14,padding:16,boxShadow:"0 1px 6px rgba(0,0,0,.09)"}},
