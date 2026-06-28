@@ -2649,8 +2649,8 @@ function FinanzasGlobal(props){
   var ingAngel=ventasFil.filter(function(v){return (v.metodo==="clip"&&v.terminalClip==="angel")||(v.metodo==="transferencia")||(v.metodo==="mercadolibre"&&v.estadoPago==="pagado");}).reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
   var egreAngel=gastosFil.filter(function(g){return g.metodoPago==="tarjeta_angel";}).reduce(function(s,g){return s+g.monto;},0);
   // Transferencias entre tarjetas
-  var transfMigueAAngel=gastosFil.filter(function(g){return g.tipo==="transf_tarjeta"&&g.desc&&g.desc.indexOf("Migue->Angel")>=0;}).reduce(function(s,g){return s+g.monto;},0);
-  var transfAngelAMigue=gastosFil.filter(function(g){return g.tipo==="transf_tarjeta"&&g.desc&&g.desc.indexOf("Angel->Migue")>=0;}).reduce(function(s,g){return s+g.monto;},0);
+  var transfMigueAAngel=gastosFil.filter(function(g){return g.tipo==="transf_tarjeta"&&g.desc&&(g.desc.indexOf("Migue->")>=0||g.desc.indexOf("T.Migue->")>=0);}).reduce(function(s,g){return s+g.monto;},0);
+  var transfAngelAMigue=gastosFil.filter(function(g){return g.tipo==="transf_tarjeta"&&g.desc&&(g.desc.indexOf("->Migue")>=0||g.desc.indexOf("->T.Migue")>=0)&&(g.desc.indexOf("Angel->")>=0||g.desc.indexOf("T.Angel->")>=0);}).reduce(function(s,g){return s+g.monto;},0);
   var saldoEfectivo=ingEfectivo-egreEfectivo;
   var saldoMigue=ingMigue-egreMigue-transfMigueAAngel+transfAngelAMigue;
   var saldoAngel=ingAngel-egreAngel-transfAngelAMigue+transfMigueAAngel;
