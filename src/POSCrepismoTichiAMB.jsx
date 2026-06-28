@@ -662,7 +662,7 @@ function ModalCobro(props){
   var cambio=efOk?efNum-total:0;
   function confirmar(){
     if(!v.metodo||(v.metodo==="efectivo"&&!efOk))return;
-    onConfirmar({metodo:v.metodo,total:total,comisionClip:v.metodo==="clip"?clip:0,netoClip:v.metodo==="clip"?neto:total,comisionDidi:0,cambio:v.metodo==="efectivo"?cambio:0,estadoPago:v.metodo==="didi"?"por_pagar":"pagado",terminalClip:v.metodo==="clip"?v.terminalClip:""});
+    onConfirmar({metodo:v.metodo,total:total,comisionClip:v.metodo==="clip"?clip:0,netoRecibido:v.metodo==="clip"?neto:total,comisionDidi:0,cambio:v.metodo==="efectivo"?cambio:0,estadoPago:v.metodo==="didi"?"por_pagar":"pagado",terminalClip:v.metodo==="clip"?v.terminalClip:""});
   }
   return re("div",{style:OV},re("div",{style:MD},
     re("div",{style:{fontSize:20,fontWeight:900,color:C.dark,marginBottom:4}},"Cobrar"),
@@ -1024,7 +1024,7 @@ function POS(props){
   var tv=ventasHoy.reduce(function(s,v){return s+v.total;},0);
   var tEf=ventasHoy.filter(function(v){return v.metodo==="efectivo";}).reduce(function(s,v){return s+v.total;},0);
   var tTr=ventasHoy.filter(function(v){return v.metodo==="transferencia";}).reduce(function(s,v){return s+v.total;},0);
-  var tCl=ventasHoy.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.netoClip;},0);
+  var tCl=ventasHoy.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.netoRecibido;},0);
   var tComCl=ventas.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.comisionClip;},0);
   var gastosCajaHoy=gastos.filter(function(g){return g.seccion==="caja"&&g.timestamp&&g.timestamp.startsWith(hoy());});
   var tGasCaja=gastosCajaHoy.reduce(function(s,g){return s+g.monto;},0);
@@ -1164,14 +1164,14 @@ function Pedidos(props){
   var ventasHoyActivas=ventasHoy.filter(function(v){return v.estadoPago!=="reembolsado";});
 
   var didiPorPagar=ventas.filter(function(v){return v.tienda===tiendaId&&v.metodo==="didi"&&v.estadoPago==="por_pagar"&&v.estadoPago!=="reembolsado";});
-  var totalDidiPendiente=didiPorPagar.reduce(function(s,v){return s+(v.netoClip||v.total);},0);
+  var totalDidiPendiente=didiPorPagar.reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
   var didiPorDia={};
   didiPorPagar.forEach(function(v){
     var d=v.timestamp?v.timestamp.split("T")[0]:"";
     if(!didiPorDia[d])didiPorDia[d]={fecha:d,ventas:[],total:0,neto:0};
     didiPorDia[d].ventas.push(v);
     didiPorDia[d].total+=v.total;
-    didiPorDia[d].neto+=(v.netoClip||v.total);
+    didiPorDia[d].neto+=(v.netoRecibido||v.total);
   });
   var diasDidi=Object.keys(didiPorDia).sort();
 
@@ -1473,14 +1473,14 @@ function Finanzas(props){
   var tg=gastos.reduce(function(s,g){return s+g.monto;},0);
   var tc=ventas.reduce(function(s,v){return s+v.comisionClip;},0);
   var tDidiComision=ventas.reduce(function(s,v){return s+(v.comisionDidi||0);},0);
-  var tDidiNeto=ventas.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+(v.netoClip||v.total);},0);
+  var tDidiNeto=ventas.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
   var tDidiTotal=ventas.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+v.total;},0);
   var tDidiPorPagar=ventas.filter(function(v){return v.metodo==="didi"&&v.estadoPago==="por_pagar";}).reduce(function(s,v){return s+v.total;},0);
   var util=tv-tg-tc-tDidiComision-tComisionML;
   var margen=tv>0?(util/tv)*100:0;
   var ef=ventas.filter(function(v){return v.metodo==="efectivo";}).reduce(function(s,v){return s+v.total;},0);
   var tr=ventas.filter(function(v){return v.metodo==="transferencia";}).reduce(function(s,v){return s+v.total;},0);
-  var cl=ventas.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.netoClip;},0);
+  var cl=ventas.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.netoRecibido;},0);
 
   var gastosInsumo=gastosFil.filter(function(g){return g.tipo==="insumo";});
   // MP por marca: insumos Crepisimo (no tienen prefijo amb_) vs AMBurger (prefijo amb_)
@@ -2065,12 +2065,12 @@ function POSAmburger(props){
   var tv=ventasHoy.reduce(function(s,v){return s+v.total;},0);
   var tEf=ventasHoy.filter(function(v){return v.metodo==="efectivo";}).reduce(function(s,v){return s+v.total;},0);
   var tTr=ventasHoy.filter(function(v){return v.metodo==="transferencia";}).reduce(function(s,v){return s+v.total;},0);
-  var tCl=ventasHoy.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.netoClip;},0);
+  var tCl=ventasHoy.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.netoRecibido;},0);
   var tComCl=ventasHoy.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.comisionClip;},0);
-  var tDidi=ventasHoy.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+(v.netoClip||v.total);},0);
-  var tDidiPorPagar=ventasHoy.filter(function(v){return v.metodo==="didi"&&v.estadoPago==="por_pagar";}).reduce(function(s,v){return s+(v.netoClip||v.total);},0);
-    var tDidi=ventasHoy.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+(v.netoClip||v.total);},0);
-  var tDidiPorPagar=ventasHoy.filter(function(v){return v.metodo==="didi"&&v.estadoPago==="por_pagar";}).reduce(function(s,v){return s+(v.netoClip||v.total);},0);
+  var tDidi=ventasHoy.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
+  var tDidiPorPagar=ventasHoy.filter(function(v){return v.metodo==="didi"&&v.estadoPago==="por_pagar";}).reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
+    var tDidi=ventasHoy.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
+  var tDidiPorPagar=ventasHoy.filter(function(v){return v.metodo==="didi"&&v.estadoPago==="por_pagar";}).reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
   var tGasCaja=gastosCajaHoy.reduce(function(s,g){return s+g.monto;},0);
   var efCaja=tEf-tGasCaja;
   var alertas=insumos.filter(function(i){return (i.stock||0)>0&&(i.stock||0)<=i.minimo;});
@@ -2285,9 +2285,9 @@ function POSTichi(props){
   var tv=ventasHoy.reduce(function(s,v){return s+v.total;},0);
   var tEf=ventasHoy.filter(function(v){return v.metodo==="efectivo";}).reduce(function(s,v){return s+v.total;},0);
   var tTr=ventasHoy.filter(function(v){return v.metodo==="transferencia";}).reduce(function(s,v){return s+v.total;},0);
-  var tCl=ventasHoy.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.netoClip;},0);
+  var tCl=ventasHoy.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.netoRecibido;},0);
   var tML=ventasHoy.filter(function(v){return v.metodo==="mercadolibre";}).reduce(function(s,v){return s+v.total;},0);
-  var tMLNeto=ventasHoy.filter(function(v){return v.metodo==="mercadolibre";}).reduce(function(s,v){return s+(v.netoClip||v.total);},0);
+  var tMLNeto=ventasHoy.filter(function(v){return v.metodo==="mercadolibre";}).reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
   var tMLComision=ventasHoy.filter(function(v){return v.metodo==="mercadolibre";}).reduce(function(s,v){return s+(v.comisionML||0);},0);
   var tMLPorPagar=ventasHoy.filter(function(v){return v.metodo==="mercadolibre"&&v.estadoPago==="por_pagar";}).reduce(function(s,v){return s+v.total;},0);
   var tGasCaja=gastosCajaHoy.reduce(function(s,g){return s+g.monto;},0);
@@ -2325,7 +2325,7 @@ function POSTichi(props){
     function conf(){
       if(!mv.metodo||(mv.metodo==="efectivo"&&!efOk))return;
       if(mv.metodo==="mercadolibre"&&montoMLNum<=0)return;
-      onConf({metodo:mv.metodo,total:total2,comisionClip:mv.metodo==="clip"?clip2:0,netoClip:mv.metodo==="clip"?neto2:mv.metodo==="mercadolibre"?montoMLNum:total2,comisionML:mv.metodo==="mercadolibre"?total2-montoMLNum:0,cambio:mv.metodo==="efectivo"?cambio:0,terminalClip:mv.metodo==="clip"?mv.terminalClip:"",estadoPago:mv.metodo==="mercadolibre"?"por_pagar":"pagado"});
+      onConf({metodo:mv.metodo,total:total2,comisionClip:mv.metodo==="clip"?clip2:0,netoRecibido:mv.metodo==="clip"?neto2:mv.metodo==="mercadolibre"?montoMLNum:total2,comisionML:mv.metodo==="mercadolibre"?total2-montoMLNum:0,cambio:mv.metodo==="efectivo"?cambio:0,terminalClip:mv.metodo==="clip"?mv.terminalClip:"",estadoPago:mv.metodo==="mercadolibre"?"por_pagar":"pagado"});
     }
     return re("div",{style:OV},re("div",{style:MD},
       re("div",{style:{fontSize:20,fontWeight:900,color:TC.dark,marginBottom:4}},"Cobrar"),
@@ -2643,10 +2643,10 @@ function FinanzasGlobal(props){
   var ingEfectivo=ventasFil.filter(function(v){return v.metodo==="efectivo";}).reduce(function(s,v){return s+v.total;},0);
   var egreEfectivo=gastosFil.filter(function(g){return g.metodoPago==="efectivo"||(!g.metodoPago&&g.seccion==="caja"&&g.tipo!=="operativo")||g.tipo==="colaborador";}).reduce(function(s,g){return s+g.monto;},0);
   // Tarjeta Migue: Clip Migue + Didi cobrado - gastos T.Migue
-  var ingMigue=ventasFil.filter(function(v){return (v.metodo==="clip"&&v.terminalClip==="migue")||(v.metodo==="didi"&&v.estadoPago==="pagado");}).reduce(function(s,v){return s+(v.netoClip||v.total);},0);
+  var ingMigue=ventasFil.filter(function(v){return (v.metodo==="clip"&&v.terminalClip==="migue")||(v.metodo==="didi"&&v.estadoPago==="pagado");}).reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
   var egreMigue=gastosFil.filter(function(g){return g.metodoPago==="tarjeta_migue";}).reduce(function(s,g){return s+g.monto;},0);
   // Tarjeta Angel: Clip Angel + Transferencias + ML cobrado - gastos T.Angel
-  var ingAngel=ventasFil.filter(function(v){return (v.metodo==="clip"&&v.terminalClip==="angel")||(v.metodo==="transferencia")||(v.metodo==="mercadolibre"&&v.estadoPago==="pagado");}).reduce(function(s,v){return s+(v.netoClip||v.total);},0);
+  var ingAngel=ventasFil.filter(function(v){return (v.metodo==="clip"&&v.terminalClip==="angel")||(v.metodo==="transferencia")||(v.metodo==="mercadolibre"&&v.estadoPago==="pagado");}).reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
   var egreAngel=gastosFil.filter(function(g){return g.metodoPago==="tarjeta_angel";}).reduce(function(s,g){return s+g.monto;},0);
   // Transferencias entre tarjetas
   var transfMigueAAngel=gastosFil.filter(function(g){return g.tipo==="transf_tarjeta"&&g.desc&&g.desc.indexOf("Migue->Angel")>=0;}).reduce(function(s,g){return s+g.monto;},0);
@@ -2659,13 +2659,13 @@ function FinanzasGlobal(props){
   var tvSA=ventasFil.filter(function(v){return v.tienda==="sanantonio";}).reduce(function(s,v){return s+v.total;},0);
   var tc=ventasFil.reduce(function(s,v){return s+v.comisionClip;},0);
   var tDidiComision=ventasFil.reduce(function(s,v){return s+(v.comisionDidi||0);},0);
-  var tComisionML=ventasFil.filter(function(v){return v.metodo==="mercadolibre";}).reduce(function(s,v){return s+(v.comisionML||0);},0);
-  var tDidiNeto=ventasFil.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+(v.netoClip||v.total);},0);
+  var tComisionML=ventasFil.filter(function(v){return v.metodo==="mercadolibre";}).reduce(function(s,v){return s+(v.comisionML||(v.total-(v.netoRecibido||v.total)));},0);
+  var tDidiNeto=ventasFil.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+(v.netoRecibido||v.total);},0);
   var tDidiTotal=ventasFil.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+v.total;},0);
   var tDidiPorPagar=ventasFil.filter(function(v){return v.metodo==="didi"&&v.estadoPago==="por_pagar";}).reduce(function(s,v){return s+v.total;},0);
   var ef=ventasFil.filter(function(v){return v.metodo==="efectivo";}).reduce(function(s,v){return s+v.total;},0);
   var tr=ventasFil.filter(function(v){return v.metodo==="transferencia";}).reduce(function(s,v){return s+v.total;},0);
-  var cl=ventasFil.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.netoClip;},0);
+  var cl=ventasFil.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.netoRecibido;},0);
   var tg=gastosFil.filter(function(g){return g.desc!=="Comision Mercado Libre";}).reduce(function(s,g){return s+g.monto;},0);
   var util=tv-tg-tc-tDidiComision-tComisionML;
   var margen=tv>0?(util/tv)*100:0;
@@ -3304,7 +3304,7 @@ function sbUpsert(table,data,onConflict){
 }
 
 async function saveVenta(venta){
-  try{await sbPost("ventas",{timestamp:venta.timestamp,tienda:venta.tienda||"",total:venta.total||0,metodo:venta.metodo||"",items:venta.items||[],comision_clip:venta.comisionClip||0,neto_clip:venta.netoClip||venta.total||0,comision_didi:venta.comisionDidi||0,comision_ml:venta.comisionML||0,cambio:venta.cambio||0,estado_pago:venta.estadoPago||"pagado",terminal_clip:venta.terminalClip||""});}catch(e){console.error("saveVenta:",e);}
+  try{await sbPost("ventas",{timestamp:venta.timestamp,tienda:venta.tienda||"",total:venta.total||0,metodo:venta.metodo||"",items:venta.items||[],comision_clip:venta.comisionClip||0,neto_recibido:venta.netoRecibido||venta.total||0,comision_didi:venta.comisionDidi||0,comision_ml:venta.comisionML||0,cambio:venta.cambio||0,estado_pago:venta.estadoPago||"pagado",terminal_clip:venta.terminalClip||""});}catch(e){console.error("saveVenta:",e);}
 }
 
 async function saveGasto(gasto){
@@ -3328,7 +3328,7 @@ async function loadFromSupabase(){
     var ventas=await sbGet("ventas","select=*&order=timestamp.desc&limit=2000")||[];
     var gastos=await sbGet("gastos","select=*&order=timestamp.desc&limit=2000")||[];
     var inventario=await sbGet("inventario","select=*")||[];
-    var ventasApp=ventas.map(function(v){return {_dbId:v.id,timestamp:v.timestamp,tienda:v.tienda,total:v.total,metodo:v.metodo,items:v.items||[],comisionClip:v.comision_clip||0,netoClip:v.neto_clip||v.total,comisionDidi:v.comision_didi||0,comisionML:v.comision_ml||0,cambio:v.cambio||0,estadoPago:v.estado_pago||"pagado",terminalClip:v.terminal_clip||""};});
+    var ventasApp=ventas.map(function(v){return {_dbId:v.id,timestamp:v.timestamp,tienda:v.tienda,total:v.total,metodo:v.metodo,items:v.items||[],comisionClip:v.comision_clip||0,netoRecibido:v.neto_recibido||v.total,comisionDidi:v.comision_didi||0,comisionML:v.comision_ml||0,cambio:v.cambio||0,estadoPago:v.estado_pago||"pagado",terminalClip:v.terminal_clip||""};});
     var gastosApp=gastos.map(function(g){return {timestamp:g.timestamp,tienda:g.tienda,seccion:g.seccion,tipo:g.tipo,monto:g.monto,desc:g.desc_gasto||"",insumoId:g.insumo_id||"",insumoNombre:g.insumo_nombre||"",cantidad:g.cantidad||0,unidad:g.unidad||"",metodoPago:g.metodo_pago||""};});
     return {ventas:ventasApp,gastos:gastosApp,inventario:inventario};
   }catch(e){console.error("loadFromSupabase:",e);return null;}
@@ -3535,7 +3535,7 @@ export default function App(){
                   return newIns;
                 });
               }}):re(Pedidos,{ventas:ventas,tiendaId:tid,
-          onActualizarPago:function(timestamps,tipo,montoReal,comision){setVentas(function(p){return p.map(function(v){return timestamps.includes(v.timestamp)?Object.assign({},v,{estadoPago:"pagado",netoClip:montoReal?(montoReal/Math.max(1,timestamps.length)):v.netoClip,comisionDidi:comision?(comision/Math.max(1,timestamps.length)):v.comisionDidi}):v;});});updateEstadoPago(timestamps);},
+          onActualizarPago:function(timestamps,tipo,montoReal,comision){setVentas(function(p){return p.map(function(v){return timestamps.includes(v.timestamp)?Object.assign({},v,{estadoPago:"pagado",netoRecibido:montoReal?(montoReal/Math.max(1,timestamps.length)):v.netoRecibido,comisionDidi:comision?(comision/Math.max(1,timestamps.length)):v.comisionDidi}):v;});});updateEstadoPago(timestamps);},
           onReembolso:function(venta){
             // Mark as reembolsado
             setVentas(function(p){return p.map(function(v){return v.timestamp===venta.timestamp?Object.assign({},v,{estadoPago:"reembolsado"}):v;});});
