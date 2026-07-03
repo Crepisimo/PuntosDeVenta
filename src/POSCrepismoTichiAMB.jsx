@@ -594,31 +594,50 @@ function ModalPromo(props){
     );
   } else if(tipo==="2crepas"){
     var todasC=CREPAS_FIJAS_D.concat(CREPAS_FIJAS_S);
-    function SelCrepa(key,opKey,llevarKey,lbl){
+    function renderCrepaSelector(key,opKey,llevarKey,lbl){
       var selC=v[key];
-      return re("div",null,
+      var selKey=selC?selC.key:"";
+      return re("div",{style:{marginBottom:14}},
         re("div",{style:LB},lbl),
-        SelBtn({opts:todasC,val:selC&&selC.key,onChange:function(k,o){upd(key,{key:k,prod:typeof o==="object"?o:{n:k},nombre:typeof o==="object"?(o.lbl||o.n):k});upd(opKey,"");},cols:3}),
-        selC&&selC.prod&&selC.prod.op?re("div",{style:{marginBottom:10}},
+        re("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:8}},
+          todasC.map(function(o){
+            var k=typeof o==="string"?o:o.n;
+            var lbl2=typeof o==="string"?o:(o.lbl||o.n);
+            var sel=selKey===k;
+            return re("button",{type:"button",key:k,onClick:function(){
+              upd(key,{key:k,prod:typeof o==="object"?o:{n:k},nombre:typeof o==="object"?(o.lbl||o.n):k});
+              upd(opKey,"");
+            },style:{padding:"9px 4px",border:"2px solid "+(sel?C.dark:"#e0e0e0"),borderRadius:9,cursor:"pointer",fontWeight:sel?800:500,background:sel?C.purpleL:"#fff",color:sel?C.dark:"#555",fontSize:11,textAlign:"center"}},lbl2);
+          })
+        ),
+        selC&&selC.prod&&selC.prod.op?re("div",{style:{marginBottom:8}},
           re("div",{style:LB},selC.prod.opLbl||"Variante"),
-          re("div",{style:{display:"flex",gap:8}},selC.prod.op.map(function(o){var sel=v[opKey]===o;return re("button",{type:"button",key:o,onClick:function(){upd(opKey,o);},style:{flex:1,padding:"9px",border:"2px solid "+(sel?C.green:"#e0e0e0"),borderRadius:9,cursor:"pointer",fontWeight:sel?800:500,background:sel?C.greenL:"#fff",color:sel?C.green:"#888",fontSize:12}},o);}))
+          re("div",{style:{display:"flex",gap:8}},
+            selC.prod.op.map(function(o){
+              var sel=v[opKey]===o;
+              return re("button",{type:"button",key:o,onClick:function(){upd(opKey,o);},style:{flex:1,padding:"9px",border:"2px solid "+(sel?C.green:"#e0e0e0"),borderRadius:9,cursor:"pointer",fontWeight:sel?800:500,background:sel?C.greenL:"#fff",color:sel?C.green:"#888",fontSize:12}},o);
+            })
+          )
         ):null,
         re(SelectorParaLlevar,{val:v[llevarKey],onChange:function(val){upd(llevarKey,val);}})
       );
     }
     body=re("div",null,
-      SelCrepa("crepa1","opCrepa1","llevar1","Crepa 1"),
-      SelCrepa("crepa2","opCrepa2","llevar2","Crepa 2"),
-      v.err?re("div",{style:{fontSize:12,color:C.red,marginBottom:10}}):null,
+      renderCrepaSelector("crepa1","opCrepa1","llevar1","Crepa 1"),
+      renderCrepaSelector("crepa2","opCrepa2","llevar2","Crepa 2"),
+      v.err?re("div",{style:{fontSize:12,color:C.red,marginBottom:10,fontWeight:600}},v.err):null,
       re("div",{style:{display:"flex",gap:10,marginTop:14}},
-        re("button",{onClick:onClose,style:BS("#f0f0f0","#666")},"Cancelar"),
-        re("button",{onClick:function(){
+        re("button",{type:"button",onClick:onClose,style:BS("#f0f0f0","#666")},"Cancelar"),
+        re("button",{type:"button",onClick:function(){
           if(!v.crepa1||!v.crepa2){upd("err","Selecciona las 2 crepas");return;}
           var rk1=v.opCrepa1&&v.crepa1.prod.claves?v.crepa1.prod.claves[v.opCrepa1]||v.crepa1.key:v.crepa1.key;
           var rk2=v.opCrepa2&&v.crepa2.prod.claves?v.crepa2.prod.claves[v.opCrepa2]||v.crepa2.key:v.crepa2.key;
           var n1=(v.crepa1.nombre||v.crepa1.key)+(v.opCrepa1?" ("+v.opCrepa1+")":"");
           var n2=(v.crepa2.nombre||v.crepa2.key)+(v.opCrepa2?" ("+v.opCrepa2+")":"");
-          onAdd([{nombre:n1,precio:95,recetaKey:rk1,paraLlevar:v.llevar1||"",usaVegetal:false},{nombre:n2+" (promo)",precio:0,recetaKey:rk2,paraLlevar:v.llevar2||"",usaVegetal:false}],"Jueves 2 Crepas - $95");
+          onAdd([
+            {nombre:n1,precio:95,recetaKey:rk1,paraLlevar:v.llevar1||"",usaVegetal:false},
+            {nombre:n2+" (promo)",precio:0,recetaKey:rk2,paraLlevar:v.llevar2||"",usaVegetal:false}
+          ],"Jueves 2 Crepas - $95");
         },style:BS(C.amber,"#333",2)},"Agregar - $95")
       )
     );
