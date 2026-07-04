@@ -1,4 +1,4 @@
-// build 4
+// build 5
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -3547,29 +3547,33 @@ export default function App(){
 
   // Save inventario to Supabase when it changes (debounced)
   React.useEffect(function(){
+    if(cargando)return;
     var timer=setTimeout(function(){
-      if(!cargando){saveInventario("centro",insC);}
+      saveInventario("centro",insC);
     },3000);
     return function(){clearTimeout(timer);};
-  },[insC,cargando]);
+  },[insC]);
   React.useEffect(function(){
+    if(cargando)return;
     var timer=setTimeout(function(){
-      if(!cargando){saveInventario("sanantonio",insSA);}
+      saveInventario("sanantonio",insSA);
     },3000);
     return function(){clearTimeout(timer);};
-  },[insSA,cargando]);
+  },[insSA]);
   React.useEffect(function(){
+    if(cargando)return;
     var timer=setTimeout(function(){
-      if(!cargando){saveInventario("amburger",insAmb);}
+      saveInventario("amburger",insAmb);
     },3000);
     return function(){clearTimeout(timer);};
-  },[insAmb,cargando]);
+  },[insAmb]);
   React.useEffect(function(){
+    if(cargando)return;
     var timer=setTimeout(function(){
-      if(!cargando){saveInventario("tichi",insTichi);}
+      saveInventario("tichi",insTichi);
     },3000);
     return function(){clearTimeout(timer);};
-  },[insTichi,cargando]);
+  },[insTichi]);
 
   function addVenta(v){
     setVentas(function(p){return [v].concat(p);});
