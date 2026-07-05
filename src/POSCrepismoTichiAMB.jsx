@@ -1,4 +1,4 @@
-// build 5
+// build 3
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -181,7 +181,7 @@ var MENU=[
   {id:"cafe_frio",nombre:"Café Frío",emoji:"🧋",precio:65,tipo:"leche",prods:["3 Leches","Caramelo","Avellana","Moca CF","Latte Frio"]},
   {id:"cafe_cal",nombre:"Café Caliente",emoji:"☕",precio:null,tipo:"leche_sel",prods:[{n:"Americano",p:40,sin:true},{n:"Espresso",p:30,sin:true},{n:"Capuchino CC",p:50},{n:"Latte",p:50},{n:"Moca CC",p:50},{n:"Chocolate CC",p:50}]},
   {id:"latte_sin",nombre:"Latte Sin Azúcar",emoji:"🍵",precio:70,tipo:"simple",prods:["Latte Sin Azucar"]},
-  {id:"crepas_d",nombre:"Crepas Dulces",emoji:"🥞",precio:85,tipo:"crepa",prods:[{n:"DLiss",lbl:"D'Liss"},{n:"Ok",lbl:"Ok!"},{n:"Pink",lbl:"Pink",op:["Lechera","Cajeta"],opLbl:"Untable",claves:{"Lechera":"Pink L","Cajeta":"Pink C"}},{n:"Cake",lbl:"Cake",op:["Fresa Natural","Durazno en Almibar"],opLbl:"Relleno",claves:{"Fresa Natural":"Cake Fresa","Durazno en Almibar":"Cake Durazno"}},{n:"Chocolatisima",lbl:"Chocolatísima"}]},
+  {id:"crepas_d",nombre:"Crepas Dulces",emoji:"🥞",precio:85,tipo:"crepa_fija",prods:[{n:"DLiss",lbl:"D'Liss"},{n:"Ok",lbl:"Ok!"},{n:"Pink",lbl:"Pink",op:["Lechera","Cajeta"],opLbl:"Untable",claves:{"Lechera":"Pink L","Cajeta":"Pink C"}},{n:"Cake",lbl:"Cake",op:["Fresa Natural","Durazno en Almibar"],opLbl:"Relleno",claves:{"Fresa Natural":"Cake Fresa","Durazno en Almibar":"Cake Durazno"}},{n:"Chocolatisima",lbl:"Chocolatísima"}]},
   {id:"crepas_s",nombre:"Crepas Saladas",emoji:"🥙",precio:85,tipo:"crepa_sal",prods:["Pepperonisima","Hawaii","Crepizzima"]},
   {id:"smoothies",nombre:"Smoothies",emoji:"🍓",precio:75,tipo:"simple",prods:["Fresa Platano","Mango Durazno"]},
   {id:"slush",nombre:"Slush",emoji:"🧊",precio:65,tipo:"simple",prods:["Slush Fresa","Slush Mango","Slush Pina"]},
@@ -303,6 +303,32 @@ var SODAS_LIST=["Pink Lemonade","Manzana Verde","Mora Azul","Soda Fresa","Soda M
 var CREPAS_FIJAS_D=[{n:"DLiss",lbl:"D'Liss"},{n:"Ok",lbl:"Ok!"},{n:"Pink",lbl:"Pink",op:["Lechera","Cajeta"],opLbl:"Untable",claves:{"Lechera":"Pink L","Cajeta":"Pink C"}},{n:"Cake",lbl:"Cake",op:["Fresa Natural","Durazno en Almibar"],opLbl:"Relleno",claves:{"Fresa Natural":"Cake Fresa","Durazno en Almibar":"Cake Durazno"}},{n:"Chocolatisima",lbl:"Chocolatísima"}];
 var CREPAS_FIJAS_S=[{n:"Pepperonisima",lbl:"Pepperonísima"},{n:"Hawaii",lbl:"Hawaii"},{n:"Crepizzima",lbl:"Crepizzíma"}];
 
+var CD_UNTABLE_MP={"Merm. Fresa":{id:"mermelada_fresa",c:35},
+  "Merm. Zarzamora":{id:"mermelada_zarza",c:35},
+  "Merm. Temporada":{id:"mermelada_temp",c:35},
+  "Nutella":{id:"nutella",c:35},
+  "Philadelphia":{id:"philadelphia",c:35}};
+var CD_RELLENO_MP={"Fresa Natural":{id:"fresa",c:55},
+  "Platano":{id:"platano",c:0.5},
+  "Pina en Almibar":{id:"pina_almibar",c:1},
+  "Kinder Delice":{id:"kinder_delice",c:1},
+  "Gansito":{id:"gansito",c:1},
+  "Galleta Oreo":{id:"oreo",c:50},
+  "Durazno en Almibar":{id:"durazno_almibar",c:1},
+  "Jamon":{id:"jamon",c:70},
+  "Pepperoni":{id:"pepperoni",c:50},
+  "Mozzarella":{id:"mozzarella",c:40},
+  "Champinones":{id:"champi",c:20}};
+var CD_TOPPING_MP={"Salsa Chocolate":{id:"salsa_chocolate",c:20},
+  "Nutella":{id:"nutella",c:20},
+  "Crema Batida":{id:"crema_batida",c:20},
+  "Cajeta":{id:"cajeta",c:20},
+  "Lechera":{id:"lechera",c:20},
+  "Nuez":{id:"nuez",c:12},
+  "Almendra":{id:"almendra",c:12},
+  "Costra Queso":{id:"mozzarella",c:40},
+  "Salsa Picante":{id:"valentina",c:30}};
+
 var CD={
   masas:["Dulce","Neutra"],
   untables:["Merm. Fresa","Merm. Zarzamora","Merm. Temporada","Nutella","Philadelphia"],
@@ -367,20 +393,43 @@ function ModalProducto(props){
   var nombre=typeof prod==="string"?prod:(prod.lbl||prod.n);
   var rKey=typeof prod==="string"?prod:prod.n;
   var precio=(typeof prod==="object"&&prod.p)?prod.p:(cat.precio||0);
-  // Crepa salada: solo pide para llevar
-  if(props.tipo==="crepa_sal"){
+  // Crepa salada o dulce fija: pide para llevar (y opciones si tiene)
+  if(props.tipo==="crepa_sal"||props.tipo==="crepa_fija"){
     var precioCS=props.precio||cat.precio||85;
     var nombre2=typeof prod==="string"?prod:(prod.lbl||prod.n);
+    var prodObj=typeof prod==="object"?prod:{n:nombre2};
     var sCS=useState("");var paraLlevarCS=sCS[0];var setParaLlevarCS=sCS[1];
+    var sOp=useState("");var opCS=sOp[0];var setOpCS=sOp[1];
+    var tieneOps=prodObj.op&&prodObj.op.length>0;
+    function getRecetaKey(){
+      if(tieneOps&&prodObj.claves&&opCS)return prodObj.claves[opCS]||nombre2;
+      return nombre2;
+    }
+    function getNombre(){
+      return nombre2+(opCS?" ("+opCS+")":"");
+    }
     return re("div",{style:OV},re("div",{style:MD},
       re("div",{style:{fontSize:18,fontWeight:900,color:C.dark,marginBottom:4}},nombre2),
       re("div",{style:{fontSize:22,fontWeight:900,color:C.green,marginBottom:14}},fmt(precioCS)),
+      tieneOps?re("div",{style:{marginBottom:14}},
+        re("div",{style:LB},prodObj.opLbl||"Opcion"),
+        re("div",{style:{display:"flex",gap:8}},
+          prodObj.op.map(function(o){
+            var sel=opCS===o;
+            return re("button",{type:"button",key:o,onClick:function(){setOpCS(o);},
+              style:{flex:1,padding:"10px",border:"2px solid "+(sel?C.dark:"#e0e0e0"),
+                borderRadius:10,cursor:"pointer",fontWeight:sel?800:500,
+                background:sel?C.purpleL:"#fff",color:sel?C.dark:"#888",fontSize:13}},o);
+          })
+        )
+      ):null,
       re(SelectorParaLlevar,{val:paraLlevarCS,onChange:setParaLlevarCS}),
       re("div",{style:{display:"flex",gap:10,marginTop:14}},
         re("button",{onClick:onClose,style:BS("#f0f0f0","#666")},"Cancelar"),
         re("button",{onClick:function(){
-          onAdd({nombre:nombre2,precio:precioCS,recetaKey:nombre2,paraLlevar:paraLlevarCS,usaVegetal:false});
-        },style:BS(C.dark,"#fff",2)},"Agregar")
+          if(tieneOps&&!opCS)return;
+          onAdd({nombre:getNombre(),precio:precioCS,recetaKey:getRecetaKey(),paraLlevar:paraLlevarCS,usaVegetal:false});
+        },disabled:tieneOps&&!opCS,style:BS(tieneOps&&!opCS?"#ccc":C.dark,"#fff",2)},"Agregar")
       )
     ));
   }
@@ -428,7 +477,7 @@ function ModalCrepisima(props){
     if(v.untables.length>0)parts.push("Untable: "+v.untables.join(", "));
     if(v.rellenos.length>0)parts.push("Relleno: "+v.rellenos.join(", "));
     if(v.toppings.length>0)parts.push("Topping: "+v.toppings.join(", "));
-    onAdd({nombre:"Crepisima",precio:precio,detalle:parts.join(" | "),paraLlevar:v.paraLlevar,recetaKey:"__crepisima__"});
+    onAdd({nombre:"Crepisima",precio:precio,detalle:parts.join(" | "),paraLlevar:v.paraLlevar,recetaKey:"__crepisima__",crepUntables:v.untables,crepRellenos:v.rellenos,crepToppings:v.toppings});
   }
   function Sec(sp){
     return re("div",{style:{marginBottom:16}},
@@ -531,9 +580,26 @@ function ModalDescuento(props){
   ));
 }
 
+function CrepaGrid(props2){
+  var todasC=CREPAS_FIJAS_D.concat(CREPAS_FIJAS_S);
+  var sel=props2.sel,onSel=props2.onSel;
+  var selKey=sel?sel.key:"";
+  return re("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:8}},
+    todasC.map(function(o){
+      var k=typeof o==="string"?o:o.n;
+      var lb=typeof o==="string"?o:(o.lbl||o.n);
+      var isS=selKey===k;
+      return re("button",{type:"button",key:k,
+        onClick:function(){onSel({key:k,prod:typeof o==="object"?o:{n:k},nombre:typeof o==="object"?(o.lbl||o.n):k});},
+        style:{padding:"9px 4px",border:"2px solid "+(isS?C.dark:"#e0e0e0"),borderRadius:9,cursor:"pointer",
+          fontWeight:isS?800:500,background:isS?C.purpleL:"#fff",color:isS?C.dark:"#555",fontSize:11,textAlign:"center"}
+      },lb);
+    })
+  );
+}
+
 function Modal2Crepas(props){
   var onAdd=props.onAdd,onClose=props.onClose;
-  var todasC=CREPAS_FIJAS_D.concat(CREPAS_FIJAS_S);
   var s1=useState(null);var crepa1=s1[0];var setCrepa1=s1[1];
   var s2=useState(null);var crepa2=s2[0];var setCrepa2=s2[1];
   var s3=useState("");var op1=s3[0];var setOp1=s3[1];
@@ -541,23 +607,6 @@ function Modal2Crepas(props){
   var s5=useState("");var llevar1=s5[0];var setLlevar1=s5[1];
   var s6=useState("");var llevar2=s6[0];var setLlevar2=s6[1];
   var s7=useState("");var err=s7[0];var setErr=s7[1];
-
-  function CrepaGrid(props2){
-    var sel=props2.sel,onSel=props2.onSel;
-    var selKey=sel?sel.key:"";
-    return re("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:8}},
-      todasC.map(function(o){
-        var k=typeof o==="string"?o:o.n;
-        var lb=typeof o==="string"?o:(o.lbl||o.n);
-        var isS=selKey===k;
-        return re("button",{type:"button",key:k,
-          onClick:function(){onSel({key:k,prod:typeof o==="object"?o:{n:k},nombre:typeof o==="object"?(o.lbl||o.n):k});},
-          style:{padding:"9px 4px",border:"2px solid "+(isS?C.dark:"#e0e0e0"),borderRadius:9,cursor:"pointer",
-            fontWeight:isS?800:500,background:isS?C.purpleL:"#fff",color:isS?C.dark:"#555",fontSize:11,textAlign:"center"}
-        },lb);
-      })
-    );
-  }
 
   return re("div",{style:OV},re("div",{style:Object.assign({},MD,{maxHeight:"90vh",overflowY:"auto"})},
     re("div",{style:{fontSize:18,fontWeight:900,color:C.dark,marginBottom:14}},"🥞 Jueves 2 Crepas - $95"),
@@ -606,6 +655,92 @@ function Modal2Crepas(props){
           {nombre:n1,precio:95,recetaKey:rk1,paraLlevar:llevar1||"",usaVegetal:false},
           {nombre:n2+" (promo)",precio:0,recetaKey:rk2,paraLlevar:llevar2||"",usaVegetal:false}
         ],"Jueves 2 Crepas - $95");
+      },style:BS(C.amber,"#333",2)},"Agregar - $95")
+    )
+  ));
+}
+
+
+function Modal2Crepisimas(props){
+  var onAdd=props.onAdd,onClose=props.onClose;
+  var MASAS2=["Dulce","Neutra"];
+  var UNTABLES2=["Merm. Fresa","Merm. Zarzamora","Merm. Temporada","Nutella","Philadelphia"];
+  var s1=useState("");var masa1=s1[0];var setMasa1=s1[1];
+  var s2=useState("");var untable1=s2[0];var setUntable1=s2[1];
+  var s3=useState("");var masa2=s3[0];var setMasa2=s3[1];
+  var s4=useState("");var untable2=s4[0];var setUntable2=s4[1];
+  var s5=useState("");var err=s5[0];var setErr=s5[1];
+
+  return re("div",{style:OV},re("div",{style:Object.assign({},MD,{maxHeight:"90vh",overflowY:"auto"})},
+    re("div",{style:{fontSize:18,fontWeight:900,color:C.dark,marginBottom:4}},"🥞 Jueves 2 Crepisimas - $95"),
+    re("div",{style:{fontSize:12,color:"#888",marginBottom:14}},"Masa y untable para cada Crepisima"),
+
+    re("div",{style:{marginBottom:16}},
+      re("div",{style:LB},"Crepisima 1"),
+      re("div",{style:{marginBottom:8}},
+        re("div",{style:{fontSize:11,color:"#888",marginBottom:4}},"Paso 1 - Masa"),
+        re("div",{style:{display:"flex",gap:8}},
+          MASAS2.map(function(m){
+            var sel=masa1===m;
+            return re("button",{type:"button",key:m,onClick:function(){setMasa1(m);},
+              style:{flex:1,padding:"10px",border:"2px solid "+(sel?C.dark:"#e0e0e0"),borderRadius:10,
+                cursor:"pointer",fontWeight:sel?800:500,background:sel?C.dark:"#fff",color:sel?"#fff":"#888",fontSize:13}},m);
+          })
+        )
+      ),
+      re("div",null,
+        re("div",{style:{fontSize:11,color:"#888",marginBottom:4}},"Paso 2 - Untable"),
+        re("div",{style:{display:"flex",flexWrap:"wrap",gap:6}},
+          UNTABLES2.map(function(u){
+            var sel=untable1===u;
+            return re("button",{type:"button",key:u,onClick:function(){setUntable1(u);},
+              style:{padding:"8px 12px",border:"2px solid "+(sel?C.teal:"#e0e0e0"),borderRadius:9,
+                cursor:"pointer",fontWeight:sel?800:500,background:sel?C.tealL:"#fff",color:sel?C.teal:"#666",fontSize:12}},u);
+          })
+        )
+      )
+    ),
+
+    re("div",{style:{marginBottom:16}},
+      re("div",{style:LB},"Crepisima 2"),
+      re("div",{style:{marginBottom:8}},
+        re("div",{style:{fontSize:11,color:"#888",marginBottom:4}},"Paso 1 - Masa"),
+        re("div",{style:{display:"flex",gap:8}},
+          MASAS2.map(function(m){
+            var sel=masa2===m;
+            return re("button",{type:"button",key:m,onClick:function(){setMasa2(m);},
+              style:{flex:1,padding:"10px",border:"2px solid "+(sel?C.dark:"#e0e0e0"),borderRadius:10,
+                cursor:"pointer",fontWeight:sel?800:500,background:sel?C.dark:"#fff",color:sel?"#fff":"#888",fontSize:13}},m);
+          })
+        )
+      ),
+      re("div",null,
+        re("div",{style:{fontSize:11,color:"#888",marginBottom:4}},"Paso 2 - Untable"),
+        re("div",{style:{display:"flex",flexWrap:"wrap",gap:6}},
+          UNTABLES2.map(function(u){
+            var sel=untable2===u;
+            return re("button",{type:"button",key:u,onClick:function(){setUntable2(u);},
+              style:{padding:"8px 12px",border:"2px solid "+(sel?C.teal:"#e0e0e0"),borderRadius:9,
+                cursor:"pointer",fontWeight:sel?800:500,background:sel?C.tealL:"#fff",color:sel?C.teal:"#666",fontSize:12}},u);
+          })
+        )
+      )
+    ),
+
+    err?re("div",{style:{fontSize:12,color:C.red,marginBottom:10,fontWeight:600}},err):null,
+
+    re("div",{style:{display:"flex",gap:10,marginTop:14}},
+      re("button",{type:"button",onClick:onClose,style:BS("#f0f0f0","#666")},"Cancelar"),
+      re("button",{type:"button",onClick:function(){
+        if(!masa1||!untable1||!masa2||!untable2){setErr("Completa los 2 pasos de cada Crepisima");return;}
+        var mp1=CD_UNTABLE_MP[untable1];
+        var mp2=CD_UNTABLE_MP[untable2];
+        onAdd([
+          {nombre:"Crepisima ("+masa1+" + "+untable1+")",precio:95,recetaKey:"__crepisima__",
+           paraLlevar:"",usaVegetal:false,crepUntables:[untable1],crepRellenos:[],crepToppings:[]},
+          {nombre:"Crepisima ("+masa2+" + "+untable2+") (promo)",precio:0,recetaKey:"__crepisima__",
+           paraLlevar:"",usaVegetal:false,crepUntables:[untable2],crepRellenos:[],crepToppings:[]}
+        ],"Jueves 2 Crepisimas - $95");
       },style:BS(C.amber,"#333",2)},"Agregar - $95")
     )
   ));
@@ -676,37 +811,7 @@ function ModalPromo(props){
   } else if(tipo==="2crepas"){
     return re(Modal2Crepas,{onAdd:onAdd,onClose:onClose});
   } else if(tipo==="2crepisimas"){
-    var MASAS2=["Dulce","Neutra"];
-    var UNTABLES2=["Merm. Fresa","Merm. Zarzamora","Merm. Temporada","Nutella","Philadelphia"];
-    function SelCrepisima2(mKey,uKey,lbl){
-      return re("div",{style:{marginBottom:12}},
-        re("div",{style:{fontSize:12,fontWeight:700,color:"#555",textTransform:"uppercase",marginBottom:6}},lbl),
-        re("div",{style:{marginBottom:6}},
-          re("div",{style:LB},"Paso 1 - Masa"),
-          re("div",{style:{display:"flex",gap:8}},MASAS2.map(function(m){var sel=v[mKey]===m;return re("button",{key:m,onClick:function(){updL(mKey,m);},style:{flex:1,padding:"9px",border:"2px solid "+(sel?C.dark:"#e0e0e0"),borderRadius:9,cursor:"pointer",fontWeight:sel?800:500,background:sel?C.dark:"#fff",color:sel?"#fff":"#888",fontSize:13}},m);}))
-        ),
-        re("div",null,
-          re("div",{style:LB},"Paso 2 - Untable"),
-          re("div",{style:{display:"flex",flexWrap:"wrap",gap:6}},UNTABLES2.map(function(u){var sel=v[uKey]===u;return re("button",{key:u,onClick:function(){updL(uKey,u);},style:{padding:"7px 10px",border:"2px solid "+(sel?C.teal:"#e0e0e0"),borderRadius:8,cursor:"pointer",fontWeight:sel?800:500,background:sel?C.tealL:"#fff",color:sel?C.teal:"#666",fontSize:12}},u);}))
-        )
-      );
-    }
-    body=re("div",null,
-      re("div",{style:{fontSize:12,color:"#888",marginBottom:14}},"2 Crepisimas solo con masa y untable - $95"),
-      SelCrepisima2("masa1","untable1","Crepisima 1"),
-      SelCrepisima2("masa2","untable2","Crepisima 2"),
-      v.err?re("div",{style:{fontSize:12,color:C.red,marginBottom:8}},v.err):null,
-      re("div",{style:{display:"flex",gap:10,marginTop:14}},
-        re("button",{onClick:onClose,style:BS("#f0f0f0","#666")},"Cancelar"),
-        re("button",{onClick:function(){
-          if(!v.masa1||!v.untable1||!v.masa2||!v.untable2){updL("err","Completa los 2 pasos de cada Crepisima");return;}
-          onAdd([
-            {nombre:"Crepisima ("+v.masa1+" + "+v.untable1+")",precio:95,recetaKey:"__crepisima__",paraLlevar:"",usaVegetal:false,esPromo:true},
-            {nombre:"Crepisima ("+v.masa2+" + "+v.untable2+") (promo)",precio:0,recetaKey:"__crepisima__",paraLlevar:"",usaVegetal:false,esPromo:true},
-          ]);
-        },style:BS(C.amber,"#333",2)},"Agregar - $95")
-      )
-    );
+    return re(Modal2Crepisimas,{onAdd:onAdd,onClose:onClose});
   } else if(tipo==="combo_amiguisimo"){
     var todasCF=CREPAS_FIJAS_D.concat(CREPAS_FIJAS_S);
     body=re("div",null,
@@ -1083,10 +1188,16 @@ function POS(props){
       var recKey=item.esEmpleado?(item.recetaBase||""):item.recetaKey;
       var rec=R[recKey]||[];
       rec.forEach(function(r){
-        if(item.esEmpleado&&EMPAQUE_IDS.indexOf(r.id)>=0)return; // skip empaque for employee
+        if(item.esEmpleado&&EMPAQUE_IDS.indexOf(r.id)>=0)return;
         var ins=newIns.find(function(x){return x.id===r.id;});
         if(ins)ins.stock=Math.max(0,(ins.stock||0)-r.c);
       });
+      // Deduct crepisima builder ingredients
+      if(recKey==="__crepisima__"){
+        (item.crepUntables||[]).forEach(function(u){var mp=CD_UNTABLE_MP[u];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c);}});
+        (item.crepRellenos||[]).forEach(function(r){var mp=CD_RELLENO_MP[r];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c);}});
+        (item.crepToppings||[]).forEach(function(t){var mp=CD_TOPPING_MP[t];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c);}});
+      }
       if(!item.esEmpleado&&item.paraLlevar==="Para llevar"){var caja=newIns.find(function(x){return x.id==="caja_crepa";});if(caja)caja.stock=Math.max(0,(caja.stock||0)-1);}
     });
     setInsumos(newIns);
@@ -1443,8 +1554,18 @@ function Inventario(props){
   var s6i=useState(null);var editIns=s6i[0];var setEditIns=s6i[1];
   var s6v=useState("");var editVal=s6v[0];var setEditVal=s6v[1];
   var s6m=useState("sumar");var editMode=s6m[0];var setEditMode=s6m[1];
+  var s6p=useState("");var editPrecio=s6p[0];var setEditPrecio=s6p[1];
+  var s6c=useState("");var editCantPaq=s6c[0];var setEditCantPaq=s6c[1];
 
   var bajos=insumos.filter(function(i){return (i.stock||0)>0&&(i.stock||0)<=i.minimo;});
+  function calcCostoProd(recetaKey){
+    var rec=R[recetaKey]||[];
+    var total=rec.reduce(function(s,r){
+      var ins=insumos.find(function(x){return x.id===r.id;});
+      return s+(ins&&ins.costoPorU?ins.costoPorU*r.c:0);
+    },0);
+    return total;
+  }
   var agotados=insumos.filter(function(i){return (i.stock||0)===0;});
   var ok=insumos.filter(function(i){return (i.stock||0)>i.minimo;});
   var lista=filtro==="bajo"?bajos:filtro==="agotado"?agotados:filtro==="ok"?ok:insumos;
@@ -1492,7 +1613,7 @@ function Inventario(props){
         var stock=ins.stock||0,agotado=stock===0,bajo=stock>0&&stock<=ins.minimo;
         var color=agotado?C.red:bajo?C.amber:C.green;
         var pct=Math.min(100,ins.minimo>0?(stock/ins.minimo)*100:100);
-        return re("div",{key:ins.id,onClick:function(){setEditIns(ins);setEditVal("");setEditMode("sumar");setModalEdit(true);},style:{padding:"12px 16px",borderBottom:i<lista.length-1?"1px solid #f5f5f5":"none",cursor:"pointer"}},
+        return re("div",{key:ins.id,onClick:function(){setEditIns(ins);setEditVal("");setEditMode("sumar");setEditPrecio("");setEditCantPaq("");setModalEdit(true);},style:{padding:"12px 16px",borderBottom:i<lista.length-1?"1px solid #f5f5f5":"none",cursor:"pointer"}},
           re("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}},
             re("div",null,re("div",{style:{fontSize:13,fontWeight:700,color:agotado?C.red:C.dark}},ins.nombre),re("div",{style:{fontSize:11,color:"#aaa"}},"Min: "+fmtC(ins.minimo,ins.unidad))),
             re("div",{style:{textAlign:"right"}},
@@ -1552,13 +1673,33 @@ function Inventario(props){
           editIns.unidad
         )
       ):null,
+      re("div",{style:{height:1,background:"#f0f0f0",margin:"14px 0"}}),
+      re("div",{style:{fontSize:13,fontWeight:800,color:C.dark,marginBottom:10}},"💰 Precio de compra"),
+      re("div",{style:{fontSize:11,color:"#888",marginBottom:8}},"Para calcular costo de produccion. El sistema calcula automaticamente el costo por "+editIns.unidad+"."),
+      re("div",{style:{display:"flex",gap:8,marginBottom:8}},
+        re("div",{style:{flex:1}},
+          re("div",{style:LB},"Precio del paquete ($)"),
+          re("input",{type:"number",placeholder:"0.00",value:editPrecio,onChange:function(e){setEditPrecio(e.target.value);},style:IP})
+        ),
+        re("div",{style:{flex:1}},
+          re("div",{style:LB},"Cantidad del paquete ("+editIns.unidad+")"),
+          re("input",{type:"number",placeholder:"1",value:editCantPaq,onChange:function(e){setEditCantPaq(e.target.value);},style:IP})
+        )
+      ),
+      editPrecio&&editCantPaq&&parseFloat(editPrecio)>0&&parseFloat(editCantPaq)>0?re("div",{style:{background:C.greenL,borderRadius:10,padding:"8px 12px",fontSize:13,color:C.green,fontWeight:700,marginBottom:8}},
+        "Costo por "+editIns.unidad+": $"+(parseFloat(editPrecio)/parseFloat(editCantPaq)).toFixed(4)
+      ):
+      editIns.costoPorU?re("div",{style:{background:"#f5f5f5",borderRadius:10,padding:"8px 12px",fontSize:13,color:"#555",marginBottom:8}},
+        "Costo actual: $"+editIns.costoPorU.toFixed(4)+"/"+editIns.unidad
+      ):null,
       re("div",{style:{display:"flex",gap:10}},
-        re("button",{onClick:function(){setModalEdit(false);setEditIns(null);},style:BS("#f0f0f0","#666")},"Cancelar"),
+        re("button",{onClick:function(){setModalEdit(false);setEditIns(null);setEditPrecio("");setEditCantPaq("");},style:BS("#f0f0f0","#666")},"Cancelar"),
         re("button",{onClick:function(){
           if(!editVal||isNaN(editVal)||parseFloat(editVal)<0)return;
           var nuevo=editMode==="sumar"?(editIns.stock||0)+parseFloat(editVal):editMode==="restar"?Math.max(0,(editIns.stock||0)-parseFloat(editVal)):parseFloat(editVal);
-          setInsumos(function(p){return p.map(function(i){return i.id===editIns.id?Object.assign({},i,{stock:nuevo}):i;});});
-          setModalEdit(false);setEditIns(null);setEditVal("");
+          var costoPorU=editPrecio&&editCantPaq&&parseFloat(editPrecio)>0&&parseFloat(editCantPaq)>0?parseFloat(editPrecio)/parseFloat(editCantPaq):editIns.costoPorU;
+          setInsumos(function(p){return p.map(function(i){return i.id===editIns.id?Object.assign({},i,{stock:nuevo,costoPorU:costoPorU}):i;});});
+          setModalEdit(false);setEditIns(null);setEditVal("");setEditPrecio("");setEditCantPaq("");
         },style:BS(C.dark,"#fff",2)},"Guardar")
       )
     )):null
@@ -2772,6 +2913,7 @@ function FinanzasGlobal(props){
   var sFI=useState("");var fechaIni=sFI[0];var setFechaIni=sFI[1];
   var sFF=useState("");var fechaFin=sFF[0];var setFechaFin=sFF[1];
   var sTr=useState(false);var modalTransf=sTr[0];var setModalTransf=sTr[1];
+  var sFTP=useState("todas");var filtroTiendaProd=sFTP[0];var setFiltroTiendaProd=sFTP[1];
   var sTrV=useState({de:"tarjeta_migue",para:"tarjeta_angel",monto:"",desc:""});var trv=sTrV[0];var setTrv=sTrV[1];
   function updTr(k,val){setTrv(function(p){var n={};for(var x in p)n[x]=p[x];n[k]=val;return n;});}
 
@@ -2904,7 +3046,7 @@ function FinanzasGlobal(props){
     setGv({tipo:"",desc:"",monto:"",err:""});setModalExt(false);
   }
 
-  var TABS=[["resumen","Resumen"],["semana","Sem. Visual"],["graficas","Graficas"],["egresos","Egresos"],["ventas","Ventas"]];
+  var TABS=[["resumen","Resumen"],["semana","Sem. Visual"],["productos","Por Producto"],["graficas","Graficas"],["egresos","Egresos"],["ventas","Ventas"]];
   var GRAFS=[{id:"dias",lbl:"Por dia"},{id:"meses",lbl:"Por mes"},{id:"productos",lbl:"Mas vendidos"}];
   var grafDatos=graf==="dias"?{datos:dias7,titulo:"Ultimos 7 dias",color:C.teal}:graf==="meses"?{datos:meses,titulo:"Por mes",color:C.dark}:{datos:topP,titulo:"Mas vendidos (cantidad)",color:C.orange};
 
@@ -3166,6 +3308,62 @@ function FinanzasGlobal(props){
             })()
           )
         )
+      )
+    ):null,
+
+    tab==="productos"?re("div",null,
+      re("div",{style:{background:"#fff",borderRadius:14,padding:14,marginBottom:14,boxShadow:"0 1px 6px rgba(0,0,0,.09)"}},
+        re("div",{style:{fontSize:13,fontWeight:800,color:C.dark,marginBottom:10}},"Ventas por Producto"),
+        re("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
+          [["todas","Todas"],["centro","Centro"],["sanantonio","S.Antonio"],["amburger","AM-Burger"],["tichi","Tichi"]].map(function(x){
+            var sel=filtroTiendaProd===x[0];
+            return re("button",{key:x[0],onClick:function(){setFiltroTiendaProd(x[0]);},
+              style:{padding:"7px 12px",border:"2px solid "+(sel?C.dark:"#e0e0e0"),borderRadius:9,
+                cursor:"pointer",fontWeight:sel?800:500,background:sel?C.dark:"#fff",
+                color:sel?"#fff":"#666",fontSize:11}},x[1]);
+          })
+        )
+      ),
+      re("div",{style:{background:"#fff",borderRadius:14,padding:16,boxShadow:"0 1px 6px rgba(0,0,0,.09)"}},
+        re("div",null,(function(){
+          var vFil=ventasFil.filter(function(v){return filtroTiendaProd==="todas"||v.tienda===filtroTiendaProd;});
+          var conteo={};
+          vFil.forEach(function(v){
+            (v.items||[]).forEach(function(item){
+              if(item.precio<0||item.esDescuento)return;
+              var n=(item.nombre||"").replace(" (empleado)","").replace(" (promo)","").trim();
+              if(!conteo[n])conteo[n]={nombre:n,qty:0,total:0,tiendas:{}};
+              conteo[n].qty++;
+              conteo[n].total+=item.precio||0;
+              var t=v.tienda||"";
+              conteo[n].tiendas[t]=(conteo[n].tiendas[t]||0)+1;
+            });
+          });
+          var sorted=Object.values(conteo).sort(function(a,b){return b.qty-a.qty;});
+          if(sorted.length===0)return re("div",{style:{textAlign:"center",color:"#bbb",padding:30}},"Sin ventas");
+          return re("div",null,
+            re("div",{style:{display:"grid",gridTemplateColumns:"1fr 60px 80px",gap:"6px 10px",marginBottom:8,paddingBottom:6,borderBottom:"2px solid #f0f0f0"}},
+              re("div",{style:{fontSize:10,fontWeight:800,color:"#aaa",textTransform:"uppercase"}},"Producto"),
+              re("div",{style:{fontSize:10,fontWeight:800,color:"#aaa",textTransform:"uppercase",textAlign:"right"}},"Pzas"),
+              re("div",{style:{fontSize:10,fontWeight:800,color:"#aaa",textTransform:"uppercase",textAlign:"right"}},"Total")
+            ),
+            sorted.map(function(p){
+              return re("div",{key:p.nombre,style:{display:"grid",gridTemplateColumns:"1fr 60px 80px",gap:"4px 10px",paddingBottom:8,marginBottom:8,borderBottom:"1px solid #f8f8f8",alignItems:"start"}},
+                re("div",null,
+                  re("div",{style:{fontSize:13,fontWeight:600,color:C.dark}},p.nombre),
+                  filtroTiendaProd==="todas"?re("div",{style:{fontSize:10,color:"#aaa",marginTop:1}},
+                    Object.entries(p.tiendas).map(function(e){
+                      var lb=e[0]==="centro"?"C":e[0]==="sanantonio"?"SA":e[0]==="amburger"?"AMB":"T";
+                      return lb+":"+e[1];
+                    }).join(" ")
+                  ):null
+                ),
+                re("div",{style:{fontSize:13,fontWeight:700,color:"#555",textAlign:"right"}},p.qty),
+                re("div",{style:{fontSize:13,fontWeight:700,color:C.green,textAlign:"right"}},fmt(p.total))
+              );
+            })
+          );
+        })())
       )
     ):null,
 
