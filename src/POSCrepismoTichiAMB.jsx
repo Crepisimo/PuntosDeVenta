@@ -502,8 +502,8 @@ function ModalCrepisima(props){
     return re("div",{style:{marginBottom:16}},
       re("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:8}},
         re("div",{style:{background:sp.color,color:"#fff",borderRadius:20,padding:"2px 10px",fontSize:11,fontWeight:700}},"Paso "+sp.paso),
-        re("span",{style:{fontSize:13,fontWeight:700,color:"#555"}},sp.titulo),
-        re("span",{style:{fontSize:11,color:"#aaa",marginLeft:"auto"}},"+$15 c/u")
+        re("span",{style:{fontSize:13,fontWeight:700,color:"#555"}},sp.titulo+(sp.maxSel?" (max "+sp.maxSel+")":"")),
+        sp.nota?re("span",{style:{fontSize:11,color:C.teal,fontWeight:700,marginLeft:"auto"}},sp.nota):re("span",{style:{fontSize:11,color:"#aaa",marginLeft:"auto"}},"+$15 c/u")
       ),
       re("div",{style:{display:"flex",flexWrap:"wrap",gap:6}},
         sp.items.map(function(item){var s=sp.sel.includes(item);return re("button",{key:item,onClick:function(){sp.onTog(item);},style:{padding:"7px 12px",border:"2px solid "+(s?sp.color:"#e0e0e0"),borderRadius:20,cursor:"pointer",fontSize:12,fontWeight:s?700:400,background:s?sp.color:"#fff",color:s?"#fff":"#666"}},item);})
@@ -524,7 +524,7 @@ function ModalCrepisima(props){
         CD.masas.map(function(m){var sel=v.masa===m;return re("button",{key:m,onClick:function(){upd("masa",m);},style:{flex:1,padding:"12px",border:"2px solid "+(sel?C.dark:"#e0e0e0"),borderRadius:10,cursor:"pointer",fontWeight:sel?800:500,background:sel?C.dark:"#fff",color:sel?"#fff":"#888",fontSize:14}},m);})
       )
     ),
-    Sec({titulo:"Untable(s)",paso:2,items:CD.untables,sel:v.untables,onTog:function(i){tog("untables",i);},color:C.teal}),
+    Sec({titulo:"Untable(s)",paso:2,items:CD.untables,sel:v.untables,onTog:function(i){if(v.untables.length>=2&&!v.untables.includes(i))return;tog("untables",i);},color:C.teal,maxSel:2,nota:v.untables.length===2?"Media porcion c/u (17.5g)":""}),
     Sec({titulo:"Relleno(s)",paso:3,items:CD.rellenos,sel:v.rellenos,onTog:function(i){tog("rellenos",i);},color:C.green}),
     Sec({titulo:"Topping(s)",paso:4,items:CD.toppings,sel:v.toppings,onTog:function(i){tog("toppings",i);},color:C.purple}),
     re(SelectorParaLlevar,{val:v.paraLlevar,onChange:function(val){upd("paraLlevar",val);}}),
@@ -685,9 +685,9 @@ function Modal2Crepisimas(props){
   var MASAS2=["Dulce","Neutra"];
   var UNTABLES2=["Merm. Fresa","Merm. Zarzamora","Merm. Temporada","Nutella","Philadelphia"];
   var s1=useState("");var masa1=s1[0];var setMasa1=s1[1];
-  var s2=useState("");var untable1=s2[0];var setUntable1=s2[1];
+  var s2=useState([]);var untables1=s2[0];var setUntables1=s2[1];
   var s3=useState("");var masa2=s3[0];var setMasa2=s3[1];
-  var s4=useState("");var untable2=s4[0];var setUntable2=s4[1];
+  var s4=useState([]);var untables2=s4[0];var setUntables2=s4[1];
   var s5=useState("");var err=s5[0];var setErr=s5[1];
 
   return re("div",{style:OV},re("div",{style:Object.assign({},MD,{maxHeight:"90vh",overflowY:"auto"})},
@@ -751,15 +751,17 @@ function Modal2Crepisimas(props){
     re("div",{style:{display:"flex",gap:10,marginTop:14}},
       re("button",{type:"button",onClick:onClose,style:BS("#f0f0f0","#666")},"Cancelar"),
       re("button",{type:"button",onClick:function(){
-        if(!masa1||!untable1||!masa2||!untable2){setErr("Completa los 2 pasos de cada Crepisima");return;}
+        if(!masa1||untables1.length===0||!masa2||untables2.length===0){setErr("Completa los 2 pasos de cada Crepisima");return;}
         var mp1=CD_UNTABLE_MP[untable1];
         var mp2=CD_UNTABLE_MP[untable2];
-        onAdd([
-          {nombre:"Crepisima ("+masa1+" + "+untable1+")",precio:95,recetaKey:"__crepisima__",
-           paraLlevar:"",usaVegetal:false,crepUntables:[untable1],crepRellenos:[],crepToppings:[]},
-          {nombre:"Crepisima ("+masa2+" + "+untable2+") (promo)",precio:0,recetaKey:"__crepisima__",
-           paraLlevar:"",usaVegetal:false,crepUntables:[untable2],crepRellenos:[],crepToppings:[]}
-        ],"Jueves 2 Crepisimas - $95");
+        var unt1Str=untables1.join(" + ");
+          var unt2Str=untables2.join(" + ");
+          onAdd([
+            {nombre:"Crepisima ("+masa1+" + "+unt1Str+")",precio:95,recetaKey:"__crepisima__",
+             paraLlevar:"",usaVegetal:false,crepUntables:untables1,crepRellenos:[],crepToppings:[]},
+            {nombre:"Crepisima ("+masa2+" + "+unt2Str+") (promo)",precio:0,recetaKey:"__crepisima__",
+             paraLlevar:"",usaVegetal:false,crepUntables:untables2,crepRellenos:[],crepToppings:[]}
+          ],"Jueves 2 Crepisimas - $95");
       },style:BS(C.amber,"#333",2)},"Agregar - $95")
     )
   ));
@@ -1213,7 +1215,7 @@ function POS(props){
           if(ins)ins.stock=Math.max(0,(ins.stock||0)-r.c);
         });
         if(recKey==="__crepisima__"){
-          (item.crepUntables||[]).forEach(function(u){var mp=CD_UNTABLE_MP[u];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c);}});
+          (function(){var uts=item.crepUntables||[];var factor=uts.length>=2?0.5:1;uts.forEach(function(u){var mp=CD_UNTABLE_MP[u];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c*factor);}});})();
           (item.crepRellenos||[]).forEach(function(r){var mp=CD_RELLENO_MP[r];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c);}});
           (item.crepToppings||[]).forEach(function(t){var mp=CD_TOPPING_MP[t];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c);}});
         }
