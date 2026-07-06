@@ -1,4 +1,4 @@
-// build 6
+// build 3
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -2343,7 +2343,7 @@ function POSAmburger(props){
   var agotados=insumos.filter(function(i){return (i.stock||0)===0&&i.minimo>0;});
 
   var AMB_DARK="#1a237e"; var AMB_ORANGE="#FF6F00";
-  var AMB_CAT={aspectRatio:"1",background:"#fff3e0",border:"2px solid "+AMB_ORANGE,borderRadius:14,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:8};
+  var AMB_CAT={background:"#fff3e0",border:"2px solid "+AMB_ORANGE,borderRadius:12,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"14px 8px"};
   var AMB_PROD={aspectRatio:"1",background:"#fff",border:"2px solid #e0e0e0",borderRadius:12,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:8,boxShadow:"0 1px 4px rgba(0,0,0,.06)"};
 
   return re("div",{style:{padding:"10px 10px 70px"}},
