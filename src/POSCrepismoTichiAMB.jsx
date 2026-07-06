@@ -685,9 +685,9 @@ function Modal2Crepisimas(props){
   var MASAS2=["Dulce","Neutra"];
   var UNTABLES2=["Merm. Fresa","Merm. Zarzamora","Merm. Temporada","Nutella","Philadelphia"];
   var s1=useState("");var masa1=s1[0];var setMasa1=s1[1];
-  var s2=useState([]);var untables1=s2[0];var setUntables1=s2[1];
+  var s2=useState("");var untable1=s2[0];var setUntable1=s2[1];
   var s3=useState("");var masa2=s3[0];var setMasa2=s3[1];
-  var s4=useState([]);var untables2=s4[0];var setUntables2=s4[1];
+  var s4=useState("");var untable2=s4[0];var setUntable2=s4[1];
   var s5=useState("");var err=s5[0];var setErr=s5[1];
 
   return re("div",{style:OV},re("div",{style:Object.assign({},MD,{maxHeight:"90vh",overflowY:"auto"})},
