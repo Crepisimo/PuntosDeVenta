@@ -489,7 +489,7 @@ function ModalCrepisima(props){
   var v=s[0];var set=s[1];
   function upd(k,val){set(function(p){var n={};for(var x in p)n[x]=p[x];n[k]=val;return n;});}
   function tog(k,item){set(function(p){var n={};for(var x in p)n[x]=p[x];n[k]=p[k].includes(item)?p[k].filter(function(x){return x!==item;}):[].concat(p[k],[item]);return n;});}
-  var precio=45+(v.untables.length+v.rellenos.length+v.toppings.length)*15;
+  var precio=45+((v.untables.length>0?1:0)+v.rellenos.length+v.toppings.length)*15;
   function confirmar(){
     if(!v.masa){upd("err","Elige el tipo de masa");return;}
     var parts=["Masa "+v.masa];
@@ -2549,20 +2549,19 @@ function POSTichi(props){
   }
 
   function confirmarCobro(info){
-    setInsumos(function(prevIns){
-      var newIns=prevIns.map(function(i){return Object.assign({},i);});
-    orden.forEach(function(item){
-      if(item.esEnvio||item.esDescuento)return;
-      // Descontar MP segun receta
-      var receta=R_TICHI_PROD[item.recetaKey]||[];
-      receta.forEach(function(r){
-        var ins=newIns.find(function(x){return x.id===r.id;});
-        if(ins)ins.stock=Math.max(0,(ins.stock||0)-r.c);
-      });
-    });
     var envioItems=orden.filter(function(i){return i.esEnvio;});
     var totalEnvio=envioItems.reduce(function(s,i){return s+i.precio;},0);
-    return newIns;
+    setInsumos(function(prevIns){
+      var newIns=prevIns.map(function(i){return Object.assign({},i);});
+      orden.forEach(function(item){
+        if(item.esEnvio||item.esDescuento)return;
+        var receta=R_TICHI_PROD[item.recetaKey]||[];
+        receta.forEach(function(r){
+          var ins=newIns.find(function(x){return x.id===r.id;});
+          if(ins)ins.stock=Math.max(0,(ins.stock||0)-r.c);
+        });
+      });
+      return newIns;
     });
     if(totalEnvio>0){
       onGasto({seccion:"caja",tipo:"operativo",monto:totalEnvio,desc:"Costo envio",tienda:tiendaId,timestamp:new Date().toISOString()});
