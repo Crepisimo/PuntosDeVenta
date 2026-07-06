@@ -133,7 +133,7 @@ var R={
   "Capuchino Banana":[{id:"leche_deslac",c:oz(3)},{id:"cafe_grano",c:oz(2)},{id:"base_neutra",c:oz(1)},{id:"jar_banana",c:pp(4)},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
   "Brownie":[{id:"leche_deslac",c:oz(4)},{id:"brownie",c:oz(2.5)},{id:"jar_chocolate",c:pp(2)},{id:"base_neutra",c:oz(1)},{id:"choc_polvo",c:oz(0.5)},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
   "Moca F":[{id:"leche_deslac",c:oz(3)},{id:"cafe_grano",c:oz(2)},{id:"jar_chocolate",c:pp(1)},{id:"base_neutra",c:oz(1.3)},{id:"choc_polvo",c:oz(1)},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
-  "Pina Colada":[{id:"leche_deslac",c:oz(4)},{id:"jar_pina",c:oz(1)},{id:"pina",c:oz(1)},{id:"jar_coco",c:pp(4)},{id:"base_neutra",c:oz(1)},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
+  "Pina Colada":[{id:"leche_deslac",c:oz(4)},{id:"jar_pina",c:oz(1)},{id:"pina",c:oz(1)},{id:"jar_coco",c:pp(4)},{id:"base_neutra",c:oz(1)},{id:"coco_rayado",c:2},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
   "3 Leches":[{id:"lechera",c:oz(1.5)},{id:"cafe_grano",c:oz(1.5)},{id:"leche_deslac",c:oz(8)},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
   "Caramelo":[{id:"leche_deslac",c:oz(9)},{id:"jar_caramelo",c:pp(3)},{id:"cafe_grano",c:oz(1.5)},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
   "Avellana":[{id:"leche_deslac",c:oz(9)},{id:"jar_avellana",c:pp(3)},{id:"cafe_grano",c:oz(1.5)},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
@@ -144,7 +144,7 @@ var R={
   "Capuchino CC":[{id:"cafe_grano",c:oz(1.5)},{id:"leche_deslac",c:oz(9)},{id:"vaso_carton",c:1},{id:"tapa_carton",c:1}],
   "Latte":[{id:"cafe_grano",c:oz(1)},{id:"leche_deslac",c:oz(9)},{id:"vaso_carton",c:1},{id:"tapa_carton",c:1}],
   "Moca CC":[{id:"cafe_grano",c:oz(1.3)},{id:"choc_polvo",c:oz(1)},{id:"leche_deslac",c:oz(9)},{id:"vaso_carton",c:1},{id:"tapa_carton",c:1}],
-  "Chocolate CC":[{id:"leche_deslac",c:oz(1.2)},{id:"choc_polvo",c:oz(9)},{id:"cafe_grano",c:oz(2)},{id:"vaso_carton",c:1},{id:"tapa_carton",c:1}],
+  "Chocolate CC":[{id:"leche_deslac",c:oz(9)},{id:"choc_polvo",c:oz(1.2)},{id:"cafe_grano",c:oz(1.5)},{id:"vaso_carton",c:1},{id:"tapa_carton",c:1}],
   "Latte Sin Azucar":[{id:"leche_vegetal",c:oz(8)},{id:"monk_fruit",c:1},{id:"cafe_grano",c:oz(1.5)},{id:"vaso_carton",c:1},{id:"tapa_carton",c:1}],
   "Fresa Platano":[{id:"yogurt",c:oz(3)},{id:"leche_deslac",c:oz(1)},{id:"base_neutra",c:oz(1)},{id:"fresa",c:oz(2)},{id:"platano",c:0.5},{id:"jar_fresa",c:oz(1)},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
   "Mango Durazno":[{id:"yogurt",c:oz(3)},{id:"leche_deslac",c:oz(1)},{id:"base_neutra",c:oz(1)},{id:"mango",c:oz(2)},{id:"durazno_almibar",c:1},{id:"jar_mango",c:oz(1.5)},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
@@ -174,6 +174,16 @@ var R={
   "Crepizzima":MB.concat([{id:"salsa_tomate",c:30},{id:"especias_ital",c:0.5},{id:"pepperoni",c:25},{id:"champi",c:30},{id:"mozzarella",c:40}]),
   "__crepisima__":MB,
   "Tapioca":[{id:"tapioca",c:1}],
+  "DLiss":       [{id:"fresa",c:55},{id:"philadelphia",c:35},{id:"nuez",c:12},{id:"kinder_delice",c:1},{id:"nutella",c:20}],
+  "Ok":          [{id:"fresa",c:55},{id:"philadelphia",c:35},{id:"gansito",c:1},{id:"nutella",c:20}],
+  "Pink L":      [{id:"fresa",c:55},{id:"philadelphia",c:35},{id:"almendra",c:12},{id:"platano",c:0.5},{id:"lechera",c:20}],
+  "Pink C":      [{id:"fresa",c:55},{id:"philadelphia",c:35},{id:"almendra",c:12},{id:"platano",c:0.5},{id:"cajeta",c:20}],
+  "Cake Fresa":  [{id:"fresa",c:55},{id:"philadelphia",c:35},{id:"nuez",c:12},{id:"lechera",c:10},{id:"crema_batida",c:15}],
+  "Cake Durazno":[{id:"durazno_almibar",c:1},{id:"philadelphia",c:35},{id:"nuez",c:12},{id:"lechera",c:10},{id:"crema_batida",c:15}],
+  "Chocolatisima":[{id:"nutella",c:35},{id:"brownie",c:50},{id:"nuez",c:12},{id:"nutella",c:20}],
+  "Pepperonisima":[{id:"philadelphia",c:35},{id:"mozzarella",c:40},{id:"jamon",c:70},{id:"pepperoni",c:50}],
+  "Hawaii":      [{id:"philadelphia",c:35},{id:"mozzarella",c:40},{id:"jamon",c:70},{id:"pina_almibar",c:1}],
+  "Crepizzima":  [{id:"mozzarella",c:40},{id:"pepperoni",c:50},{id:"salsa_tomate",c:35},{id:"champi",c:20}],
 };
 
 var MENU=[
@@ -219,6 +229,7 @@ var INSUMOS_AMB=[
   {id:"amb_jamaica",nombre:"Agua de jamaica",unidad:"pza",minimo:5},
   {id:"amb_agua_bot",nombre:"Agua embotellada",unidad:"pza",minimo:5},
   {id:"amb_papas",nombre:"Papas a la francesa",unidad:"g",minimo:3000},
+  {id:"amb_vaso_papas",nombre:"Vaso para papas",unidad:"pza",minimo:25},
   {id:"amb_lemonpepper",nombre:"Lemon pepper",unidad:"g",minimo:100},
   {id:"amb_sal",nombre:"Sal",unidad:"g",minimo:200},
   {id:"amb_aceite",nombre:"Aceite para freir",unidad:"L",minimo:5},
@@ -226,6 +237,10 @@ var INSUMOS_AMB=[
   {id:"amb_agua_natural",nombre:"Agua natural",unidad:"ml",minimo:300},
   {id:"amb_papel_termico",nombre:"Papel termico",unidad:"pza",minimo:50},
   {id:"amb_bolsa_papel",nombre:"Bolsa de papel",unidad:"pza",minimo:10},
+  {id:"amb_guacamole",nombre:"Guacamole",unidad:"g",minimo:500},
+  {id:"amb_chicharron_jal",nombre:"Chicharron jalapeño",unidad:"g",minimo:300},
+  {id:"amb_aderezo",nombre:"Aderezo especial",unidad:"g",minimo:300},
+  {id:"amb_cebolla_caramelizada",nombre:"Cebolla caramelizada",unidad:"g",minimo:200},
 ];
 function mkInsumosAmb(){return INSUMOS_AMB.map(function(i){return Object.assign({},i,{stock:0});});}
 
@@ -258,7 +273,11 @@ var R_AMB={
   "Horchata":[{id:"amb_horchata",c:1}],
   "Jamaica":[{id:"amb_jamaica",c:1}],
   "Agua Bot":[{id:"amb_agua_bot",c:1}],
-};
+  "Extra Queso":    [{id:"amb_q_americano",c:1}],
+  "Extra Tocino":   [{id:"amb_tocino",c:30}],
+  "Extra Carne":    [{id:"amb_carne",c:100}],
+  "Extra Guacamole":[{id:"amb_aguacate",c:0.08},{id:"amb_limon",c:2.4}]
+}
 
 var MENU_AMB=[
   {id:"hamburguesas",nombre:"Hamburguesas",emoji:"🍔",precio:null,tipo:"amb_burg",
