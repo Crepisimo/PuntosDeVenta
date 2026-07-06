@@ -685,14 +685,14 @@ function Modal2Crepisimas(props){
   var MASAS2=["Dulce","Neutra"];
   var UNTABLES2=["Merm. Fresa","Merm. Zarzamora","Merm. Temporada","Nutella","Philadelphia"];
   var s1=useState("");var masa1=s1[0];var setMasa1=s1[1];
-  var s2=useState("");var untable1=s2[0];var setUntable1=s2[1];
+  var s2=useState([]);var untables1=s2[0];var setUntables1=s2[1];
   var s3=useState("");var masa2=s3[0];var setMasa2=s3[1];
-  var s4=useState("");var untable2=s4[0];var setUntable2=s4[1];
+  var s4=useState([]);var untables2=s4[0];var setUntables2=s4[1];
   var s5=useState("");var err=s5[0];var setErr=s5[1];
 
   return re("div",{style:OV},re("div",{style:Object.assign({},MD,{maxHeight:"90vh",overflowY:"auto"})},
     re("div",{style:{fontSize:18,fontWeight:900,color:C.dark,marginBottom:4}},"🥞 Jueves 2 Crepisimas - $95"),
-    re("div",{style:{fontSize:12,color:"#888",marginBottom:14}},"Masa y untable para cada Crepisima"),
+    re("div",{style:{fontSize:12,color:"#888",marginBottom:14}},"Masa y 2 untables por Crepisima (toca hasta 2)"),
 
     re("div",{style:{marginBottom:16}},
       re("div",{style:LB},"Crepisima 1"),
@@ -711,10 +711,15 @@ function Modal2Crepisimas(props){
         re("div",{style:{fontSize:11,color:"#888",marginBottom:4}},"Paso 2 - Untable"),
         re("div",{style:{display:"flex",flexWrap:"wrap",gap:6}},
           UNTABLES2.map(function(u){
-            var sel=untable1===u;
-            return re("button",{type:"button",key:u,onClick:function(){setUntable1(u);},
-              style:{padding:"8px 12px",border:"2px solid "+(sel?C.teal:"#e0e0e0"),borderRadius:9,
-                cursor:"pointer",fontWeight:sel?800:500,background:sel?C.tealL:"#fff",color:sel?C.teal:"#666",fontSize:12}},u);
+            var sel=untables1.indexOf(u)>=0;
+            return re("button",{type:"button",key:u,onClick:function(){
+              setUntables1(function(prev){
+                if(prev.indexOf(u)>=0)return prev.filter(function(x){return x!==u;});
+                if(prev.length>=2)return prev;
+                return prev.concat([u]);
+              });
+            },style:{padding:"8px 12px",border:"2px solid "+(sel?C.teal:"#e0e0e0"),borderRadius:9,
+              cursor:"pointer",fontWeight:sel?800:500,background:sel?C.tealL:"#fff",color:sel?C.teal:"#666",fontSize:12}},u);
           })
         )
       )
@@ -737,10 +742,15 @@ function Modal2Crepisimas(props){
         re("div",{style:{fontSize:11,color:"#888",marginBottom:4}},"Paso 2 - Untable"),
         re("div",{style:{display:"flex",flexWrap:"wrap",gap:6}},
           UNTABLES2.map(function(u){
-            var sel=untable2===u;
-            return re("button",{type:"button",key:u,onClick:function(){setUntable2(u);},
-              style:{padding:"8px 12px",border:"2px solid "+(sel?C.teal:"#e0e0e0"),borderRadius:9,
-                cursor:"pointer",fontWeight:sel?800:500,background:sel?C.tealL:"#fff",color:sel?C.teal:"#666",fontSize:12}},u);
+            var sel=untables2.indexOf(u)>=0;
+            return re("button",{type:"button",key:u,onClick:function(){
+              setUntables2(function(prev){
+                if(prev.indexOf(u)>=0)return prev.filter(function(x){return x!==u;});
+                if(prev.length>=2)return prev;
+                return prev.concat([u]);
+              });
+            },style:{padding:"8px 12px",border:"2px solid "+(sel?C.teal:"#e0e0e0"),borderRadius:9,
+              cursor:"pointer",fontWeight:sel?800:500,background:sel?C.tealL:"#fff",color:sel?C.teal:"#666",fontSize:12}},u);
           })
         )
       )
