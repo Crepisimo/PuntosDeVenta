@@ -1,4 +1,4 @@
-// build 3
+// build 4 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
