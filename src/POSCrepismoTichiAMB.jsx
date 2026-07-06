@@ -1,4 +1,4 @@
-// build 4
+// build 5
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -1182,25 +1182,26 @@ function POS(props){
     setModalProd({cat:cat,prod:prod});
   }
   function confirmarCobro(info){
-    var newIns=insumos.map(function(i){return Object.assign({},i);});
-    orden.forEach(function(item){
-      if(item.esDescuento)return;
-      var recKey=item.esEmpleado?(item.recetaBase||""):item.recetaKey;
-      var rec=R[recKey]||[];
-      rec.forEach(function(r){
-        if(item.esEmpleado&&EMPAQUE_IDS.indexOf(r.id)>=0)return;
-        var ins=newIns.find(function(x){return x.id===r.id;});
-        if(ins)ins.stock=Math.max(0,(ins.stock||0)-r.c);
+    setInsumos(function(prevIns){
+      var newIns=prevIns.map(function(i){return Object.assign({},i);});
+      orden.forEach(function(item){
+        if(item.esDescuento)return;
+        var recKey=item.esEmpleado?(item.recetaBase||""):item.recetaKey;
+        var rec=R[recKey]||[];
+        rec.forEach(function(r){
+          if(item.esEmpleado&&EMPAQUE_IDS.indexOf(r.id)>=0)return;
+          var ins=newIns.find(function(x){return x.id===r.id;});
+          if(ins)ins.stock=Math.max(0,(ins.stock||0)-r.c);
+        });
+        if(recKey==="__crepisima__"){
+          (item.crepUntables||[]).forEach(function(u){var mp=CD_UNTABLE_MP[u];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c);}});
+          (item.crepRellenos||[]).forEach(function(r){var mp=CD_RELLENO_MP[r];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c);}});
+          (item.crepToppings||[]).forEach(function(t){var mp=CD_TOPPING_MP[t];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c);}});
+        }
+        if(!item.esEmpleado&&item.paraLlevar==="Para llevar"){var caja=newIns.find(function(x){return x.id==="caja_crepa";});if(caja)caja.stock=Math.max(0,(caja.stock||0)-1);}
       });
-      // Deduct crepisima builder ingredients
-      if(recKey==="__crepisima__"){
-        (item.crepUntables||[]).forEach(function(u){var mp=CD_UNTABLE_MP[u];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c);}});
-        (item.crepRellenos||[]).forEach(function(r){var mp=CD_RELLENO_MP[r];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c);}});
-        (item.crepToppings||[]).forEach(function(t){var mp=CD_TOPPING_MP[t];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c);}});
-      }
-      if(!item.esEmpleado&&item.paraLlevar==="Para llevar"){var caja=newIns.find(function(x){return x.id==="caja_crepa";});if(caja)caja.stock=Math.max(0,(caja.stock||0)-1);}
+      return newIns;
     });
-    setInsumos(newIns);
     var descuentoTotal=orden.filter(function(i){return i.esDescuento;}).reduce(function(s,i){return s+Math.abs(i.precio);},0);
     var _venta=Object.assign({},info,{tienda:tiendaId,total:totalDisplay,descuento:descuentoTotal,items:orden,timestamp:new Date().toISOString()});
     onVenta(_venta);
@@ -2301,7 +2302,8 @@ function POSAmburger(props){
   }
 
   function confirmarCobro(info){
-    var newIns=insumos.map(function(i){return Object.assign({},i);});
+    setInsumos(function(prevIns){
+      var newIns=prevIns.map(function(i){return Object.assign({},i);});
     var hayParaLlevar=orden.some(function(item){return item.paraLlevar==="Para llevar";});
     orden.forEach(function(item){
       if(item.esDescuento)return;
@@ -2309,7 +2311,8 @@ function POSAmburger(props){
       rec.forEach(function(r){var ins=newIns.find(function(x){return x.id===r.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-r.c);});
     });
     if(hayParaLlevar){var bolsa=newIns.find(function(x){return x.id==="amb_bolsa_papel";});if(bolsa)bolsa.stock=Math.max(0,(bolsa.stock||0)-1);}
-    setInsumos(newIns);
+    return newIns;
+    });
     var _va=Object.assign({},info,{tienda:tiendaId,total:totalDisplay,items:orden,timestamp:new Date().toISOString()});onVenta(_va);window.imprimirTicket&&window.imprimirTicket(_va,tiendaId);
     setOrden([]);setModalCobro(false);setCat(null);setVerPromos(false);
     setExito(true);setTimeout(function(){setExito(false);},2000);
@@ -2525,7 +2528,8 @@ function POSTichi(props){
   }
 
   function confirmarCobro(info){
-    var newIns=insumos.map(function(i){return Object.assign({},i);});
+    setInsumos(function(prevIns){
+      var newIns=prevIns.map(function(i){return Object.assign({},i);});
     orden.forEach(function(item){
       if(item.esEnvio||item.esDescuento)return;
       // Descontar MP segun receta
@@ -2537,7 +2541,8 @@ function POSTichi(props){
     });
     var envioItems=orden.filter(function(i){return i.esEnvio;});
     var totalEnvio=envioItems.reduce(function(s,i){return s+i.precio;},0);
-    setInsumos(newIns);
+    return newIns;
+    });
     if(totalEnvio>0){
       onGasto({seccion:"caja",tipo:"operativo",monto:totalEnvio,desc:"Costo envio",tienda:tiendaId,timestamp:new Date().toISOString()});
     }
@@ -3677,7 +3682,7 @@ async function saveGasto(gasto){
 }
 
 async function saveInventario(tienda,insumos){
-  try{var rows=insumos.map(function(i){return {tienda:tienda,insumo_id:i.id,stock:i.stock||0};});await sbUpsert("inventario",rows,"tienda,insumo_id");}catch(e){console.error("saveInventario:",e);}
+  try{var rows=insumos.map(function(i){return {tienda:tienda,insumo_id:i.id,stock:i.stock||0,costo_por_u:i.costoPorU||null};});await sbUpsert("inventario",rows,"tienda,insumo_id");}catch(e){console.error("saveInventario:",e);}
 }
 
 async function updateEstadoPago(timestamps,status){
@@ -3722,7 +3727,7 @@ export default function App(){
             setFn(function(prev){
               return prev.map(function(ins){
                 var row=inv.find(function(r){return r.tienda===tiendaId&&r.insumo_id===ins.id;});
-                return row?Object.assign({},ins,{stock:row.stock}):ins;
+                return row?Object.assign({},ins,{stock:row.stock,costoPorU:row.costo_por_u||ins.costoPorU||null}):ins;
               });
             });
           }
