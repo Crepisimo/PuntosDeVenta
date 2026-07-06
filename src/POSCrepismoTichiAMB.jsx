@@ -1,4 +1,4 @@
-// build 3
+// build 5
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -253,7 +253,7 @@ var GU=[
 ];
 var PP=[
   {id:"amb_papas",c:150},{id:"amb_lemonpepper",c:2.5},{id:"amb_sal",c:2.5},{id:"amb_aceite",c:0.05},
-];
+,{id:"amb_vaso_papas",c:1}];
 var BP=[{id:"amb_pan_parrillero",c:1},{id:"amb_carne",c:100}];
 var BB=[{id:"amb_pan_brioche",c:1},{id:"amb_carne",c:100}];
 
