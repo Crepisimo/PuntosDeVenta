@@ -1,4 +1,4 @@
-// build 5
+// build 6
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -2358,10 +2358,10 @@ function POSAmburger(props){
         re("button",{onClick:function(){setModalGasto(true);},style:{flex:1,padding:9,background:C.redL,color:C.red,border:"2px solid "+C.red,borderRadius:10,fontWeight:800,fontSize:12,cursor:"pointer"}},"+ Gasto")
       ),
       re("div",{style:SC},"Menu"),
-      re("div",{style:{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:20}},
+      re("div",{style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:20}},
         MENU_AMB.map(function(cat){return re("button",{key:cat.id,onClick:function(){setCat(cat);},style:AMB_CAT},
-          re("div",{style:{fontSize:32}},cat.emoji),
-          re("div",{style:{fontSize:13,fontWeight:800,color:AMB_DARK,marginTop:5,textAlign:"center",lineHeight:1.3}},cat.nombre),
+          re("div",{style:{fontSize:22}},cat.emoji),
+          re("div",{style:{fontSize:11,fontWeight:800,color:AMB_DARK,marginTop:3,textAlign:"center",lineHeight:1.2}},cat.nombre),
           cat.precio?re("div",{style:{fontSize:11,color:"#aaa",marginTop:2}},fmt(cat.precio)):null
         );})
       )
