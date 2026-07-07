@@ -1,4 +1,4 @@
-// build 5 - julio 2026
+// build 4 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -1731,6 +1731,8 @@ function Inventario(props){
           var costoPorU=editPrecio&&editCantPaq&&parseFloat(editPrecio)>0&&parseFloat(editCantPaq)>0?parseFloat(editPrecio)/parseFloat(editCantPaq):editIns.costoPorU;
           if(delta!==null){updateStockDelta(tiendaId,[{id:editIns.id,delta:delta}]);}
           else{saveInventario(tiendaId,insumos.map(function(i){return i.id===editIns.id?Object.assign({},i,{stock:nuevo,costoPorU:costoPorU}):i;}));}
+          var stockDelta=nuevo-(editIns.stock||0);
+          updateStockDelta(tiendaId,[{id:editIns.id,delta:stockDelta}]);
           setInsumos(function(p){return p.map(function(i){return i.id===editIns.id?Object.assign({},i,{stock:nuevo,costoPorU:costoPorU}):i;});});
           setModalEdit(false);setEditIns(null);setEditVal("");setEditPrecio("");setEditCantPaq("");
         },style:BS(C.dark,"#fff",2)},"Guardar")
@@ -3713,6 +3715,15 @@ async function saveInventario(tienda,insumos){
   try{var rows=insumos.map(function(i){return {tienda:tienda,insumo_id:i.id,stock:i.stock||0,costo_por_u:i.costoPorU||null};});await sbUpsert("inventario",rows,"tienda,insumo_id");}catch(e){console.error("saveInventario:",e);}
 }
 
+async function applyStockDeltas(tienda,deltas){
+  // deltas = [{id:"insumo_id", delta:-6}]
+  try{
+    for(var i=0;i<deltas.length;i++){
+      await updateStock(tienda,deltas[i].id,deltas[i].delta);
+    }
+  }catch(e){console.error("applyStockDeltas:",e);}
+}
+
 async function updateStockDelta(tienda,deltas){
   // deltas: [{id, delta}] - positive=add, negative=subtract
   try{
@@ -3734,6 +3745,21 @@ async function updateEstadoPago(timestamps,status){
 
 async function updateVentaById(dbId,data){
   try{await sbPatch("ventas","id=eq."+dbId,data);}catch(e){console.error("updateVentaById:",e);}
+}
+
+async function sbRpc(fn, params){
+  var r=await fetch(SB_URL+"/rest/v1/rpc/"+fn,{
+    method:"POST",
+    headers:{"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY,"Content-Type":"application/json"},
+    body:JSON.stringify(params)
+  });
+  if(!r.ok){var t=await r.text();throw new Error(t);}
+  return null;
+}
+
+async function updateStock(tienda,insumoId,delta){
+  try{await sbRpc("update_stock",{p_tienda:tienda,p_insumo_id:insumoId,p_delta:delta});}
+  catch(e){console.error("updateStock:",e);}
 }
 
 async function loadFromSupabase(){
