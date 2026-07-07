@@ -1213,26 +1213,23 @@ function POS(props){
     setModalProd({cat:cat,prod:prod});
   }
   function confirmarCobro(info){
-    setInsumos(function(prevIns){
-      var newIns=prevIns.map(function(i){return Object.assign({},i);});
-      orden.forEach(function(item){
-        if(item.esDescuento)return;
-        var recKey=item.esEmpleado?(item.recetaBase||""):item.recetaKey;
-        var rec=R[recKey]||[];
-        rec.forEach(function(r){
-          if(item.esEmpleado&&EMPAQUE_IDS.indexOf(r.id)>=0)return;
-          var ins=newIns.find(function(x){return x.id===r.id;});
-          if(ins)ins.stock=Math.max(0,(ins.stock||0)-r.c);
-        });
-        if(recKey==="__crepisima__"){
-          (function(){var uts=item.crepUntables||[];var factor=uts.length>=2?0.5:1;uts.forEach(function(u){var mp=CD_UNTABLE_MP[u];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c*factor);}});})();
-          (item.crepRellenos||[]).forEach(function(r){var mp=CD_RELLENO_MP[r];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c);}});
-          (item.crepToppings||[]).forEach(function(t){var mp=CD_TOPPING_MP[t];if(mp){var ins=newIns.find(function(x){return x.id===mp.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-mp.c);}});
-        }
-        if(!item.esEmpleado&&item.paraLlevar==="Para llevar"){var caja=newIns.find(function(x){return x.id==="caja_crepa";});if(caja)caja.stock=Math.max(0,(caja.stock||0)-1);}
-      });
-      return newIns;
+    var deltas={};
+    function addDelta(id,amt){deltas[id]=(deltas[id]||0)-amt;}
+    orden.forEach(function(item){
+      if(item.esDescuento)return;
+      var recKey=item.esEmpleado?(item.recetaBase||""):item.recetaKey;
+      var rec=R[recKey]||[];
+      rec.forEach(function(r){if(item.esEmpleado&&EMPAQUE_IDS.indexOf(r.id)>=0)return;addDelta(r.id,r.c);});
+      if(recKey==="__crepisima__"){
+        var uts=item.crepUntables||[];var factor=uts.length>=2?0.5:1;
+        uts.forEach(function(u){var mp=CD_UNTABLE_MP[u];if(mp)addDelta(mp.id,mp.c*factor);});
+        (item.crepRellenos||[]).forEach(function(r){var mp=CD_RELLENO_MP[r];if(mp)addDelta(mp.id,mp.c);});
+        (item.crepToppings||[]).forEach(function(t){var mp=CD_TOPPING_MP[t];if(mp)addDelta(mp.id,mp.c);});
+      }
+      if(!item.esEmpleado&&item.paraLlevar==="Para llevar")addDelta("caja_crepa",1);
     });
+    updateStockDelta(tiendaId,Object.keys(deltas).map(function(id){return {id:id,delta:deltas[id]};}));
+    setInsumos(function(prev){return prev.map(function(ins){return deltas[ins.id]!==undefined?Object.assign({},ins,{stock:Math.max(0,(ins.stock||0)+deltas[ins.id])}):ins;});});
     var descuentoTotal=orden.filter(function(i){return i.esDescuento;}).reduce(function(s,i){return s+Math.abs(i.precio);},0);
     var _venta=Object.assign({},info,{tienda:tiendaId,total:totalDisplay,descuento:descuentoTotal,items:orden,timestamp:new Date().toISOString()});
     onVenta(_venta);
@@ -1728,8 +1725,12 @@ function Inventario(props){
         re("button",{onClick:function(){setModalEdit(false);setEditIns(null);setEditPrecio("");setEditCantPaq("");},style:BS("#f0f0f0","#666")},"Cancelar"),
         re("button",{onClick:function(){
           if(!editVal||isNaN(editVal)||parseFloat(editVal)<0)return;
-          var nuevo=editMode==="sumar"?(editIns.stock||0)+parseFloat(editVal):editMode==="restar"?Math.max(0,(editIns.stock||0)-parseFloat(editVal)):parseFloat(editVal);
+          var val=parseFloat(editVal);
+          var delta=editMode==="sumar"?val:editMode==="restar"?-val:null;
+          var nuevo=editMode==="sumar"?(editIns.stock||0)+val:editMode==="restar"?Math.max(0,(editIns.stock||0)-val):val;
           var costoPorU=editPrecio&&editCantPaq&&parseFloat(editPrecio)>0&&parseFloat(editCantPaq)>0?parseFloat(editPrecio)/parseFloat(editCantPaq):editIns.costoPorU;
+          if(delta!==null){updateStockDelta(tiendaId,[{id:editIns.id,delta:delta}]);}
+          else{saveInventario(tiendaId,insumos.map(function(i){return i.id===editIns.id?Object.assign({},i,{stock:nuevo,costoPorU:costoPorU}):i;}));}
           setInsumos(function(p){return p.map(function(i){return i.id===editIns.id?Object.assign({},i,{stock:nuevo,costoPorU:costoPorU}):i;});});
           setModalEdit(false);setEditIns(null);setEditVal("");setEditPrecio("");setEditCantPaq("");
         },style:BS(C.dark,"#fff",2)},"Guardar")
@@ -2333,17 +2334,17 @@ function POSAmburger(props){
   }
 
   function confirmarCobro(info){
-    setInsumos(function(prevIns){
-      var newIns=prevIns.map(function(i){return Object.assign({},i);});
+    var deltas={};
+    function addDelta(id,amt){deltas[id]=(deltas[id]||0)-amt;}
     var hayParaLlevar=orden.some(function(item){return item.paraLlevar==="Para llevar";});
     orden.forEach(function(item){
       if(item.esDescuento)return;
       var rec=R_AMB[item.recetaKey]||[];
-      rec.forEach(function(r){var ins=newIns.find(function(x){return x.id===r.id;});if(ins)ins.stock=Math.max(0,(ins.stock||0)-r.c);});
+      rec.forEach(function(r){addDelta(r.id,r.c);});
     });
-    if(hayParaLlevar){var bolsa=newIns.find(function(x){return x.id==="amb_bolsa_papel";});if(bolsa)bolsa.stock=Math.max(0,(bolsa.stock||0)-1);}
-    return newIns;
-    });
+    if(hayParaLlevar)addDelta("amb_bolsa_papel",1);
+    updateStockDelta(tiendaId,Object.keys(deltas).map(function(id){return {id:id,delta:deltas[id]};}));
+    setInsumos(function(prev){return prev.map(function(ins){return deltas[ins.id]!==undefined?Object.assign({},ins,{stock:Math.max(0,(ins.stock||0)+deltas[ins.id])}):ins;});});
     var _va=Object.assign({},info,{tienda:tiendaId,total:totalDisplay,items:orden,timestamp:new Date().toISOString()});onVenta(_va);window.imprimirTicket&&window.imprimirTicket(_va,tiendaId);
     setOrden([]);setModalCobro(false);setCat(null);setVerPromos(false);
     setExito(true);setTimeout(function(){setExito(false);},2000);
@@ -2561,18 +2562,15 @@ function POSTichi(props){
   function confirmarCobro(info){
     var envioItems=orden.filter(function(i){return i.esEnvio;});
     var totalEnvio=envioItems.reduce(function(s,i){return s+i.precio;},0);
-    setInsumos(function(prevIns){
-      var newIns=prevIns.map(function(i){return Object.assign({},i);});
-      orden.forEach(function(item){
-        if(item.esEnvio||item.esDescuento)return;
-        var receta=R_TICHI_PROD[item.recetaKey]||[];
-        receta.forEach(function(r){
-          var ins=newIns.find(function(x){return x.id===r.id;});
-          if(ins)ins.stock=Math.max(0,(ins.stock||0)-r.c);
-        });
-      });
-      return newIns;
+    var deltas={};
+    function addDelta(id,amt){deltas[id]=(deltas[id]||0)-amt;}
+    orden.forEach(function(item){
+      if(item.esEnvio||item.esDescuento)return;
+      var receta=R_TICHI_PROD[item.recetaKey]||[];
+      receta.forEach(function(r){addDelta(r.id,r.c);});
     });
+    updateStockDelta(tiendaId,Object.keys(deltas).map(function(id){return {id:id,delta:deltas[id]};}));
+    setInsumos(function(prev){return prev.map(function(ins){return deltas[ins.id]!==undefined?Object.assign({},ins,{stock:Math.max(0,(ins.stock||0)+deltas[ins.id])}):ins;});});
     if(totalEnvio>0){
       onGasto({seccion:"caja",tipo:"operativo",monto:totalEnvio,desc:"Costo envio",tienda:tiendaId,timestamp:new Date().toISOString()});
     }
@@ -3713,6 +3711,21 @@ async function saveGasto(gasto){
 
 async function saveInventario(tienda,insumos){
   try{var rows=insumos.map(function(i){return {tienda:tienda,insumo_id:i.id,stock:i.stock||0,costo_por_u:i.costoPorU||null};});await sbUpsert("inventario",rows,"tienda,insumo_id");}catch(e){console.error("saveInventario:",e);}
+}
+
+async function updateStockDelta(tienda,deltas){
+  // deltas: [{id, delta}] - positive=add, negative=subtract
+  try{
+    for(var i=0;i<deltas.length;i++){
+      var d=deltas[i];
+      if(!d.id||d.delta===0)continue;
+      await fetch(SB_URL+"/rest/v1/rpc/update_stock",{
+        method:"POST",
+        headers:{"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY,"Content-Type":"application/json"},
+        body:JSON.stringify({p_tienda:tienda,p_insumo_id:d.id,p_delta:d.delta})
+      });
+    }
+  }catch(e){console.error("updateStockDelta:",e);}
 }
 
 async function updateEstadoPago(timestamps,status){
