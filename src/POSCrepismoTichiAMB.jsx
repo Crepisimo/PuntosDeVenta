@@ -1,4 +1,4 @@
-// build 5 - julio 2026
+// build 45 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -3817,34 +3817,7 @@ export default function App(){
   var sPinOk=useState(false);var pinOk=sPinOk[0];var setPinOk=sPinOk[1];
 
   // Save inventario to Supabase when it changes (debounced)
-  React.useEffect(function(){
-    if(cargando)return;
-    var timer=setTimeout(function(){
-      saveInventario("centro",insC);
-    },3000);
-    return function(){clearTimeout(timer);};
-  },[insC]);
-  React.useEffect(function(){
-    if(cargando)return;
-    var timer=setTimeout(function(){
-      saveInventario("sanantonio",insSA);
-    },3000);
-    return function(){clearTimeout(timer);};
-  },[insSA]);
-  React.useEffect(function(){
-    if(cargando)return;
-    var timer=setTimeout(function(){
-      saveInventario("amburger",insAmb);
-    },3000);
-    return function(){clearTimeout(timer);};
-  },[insAmb]);
-  React.useEffect(function(){
-    if(cargando)return;
-    var timer=setTimeout(function(){
-      saveInventario("tichi",insTichi);
-    },3000);
-    return function(){clearTimeout(timer);};
-  },[insTichi]);
+  // Stock saved via delta updates (multi-device safe)
 
   function addVenta(v){
     setVentas(function(p){return [v].concat(p);});
