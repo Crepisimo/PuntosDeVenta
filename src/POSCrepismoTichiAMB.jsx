@@ -1,4 +1,4 @@
-// build 4 - julio 2026
+// build 455555 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -11,7 +11,7 @@ function fmt(n){return new Intl.NumberFormat("es-MX",{style:"currency",currency:
 function fmtC(n,u){return parseFloat(Number(n).toFixed(2))+" "+u;}
 function fmtFecha(ts){var d=new Date(ts);return d.toLocaleDateString("es-MX",{day:"2-digit",month:"short"})+" "+d.toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"});}
 function hoy(){
-  var d=new Date();
+  var d=new D5555ate();
   var yyyy=d.getFullYear();
   var mm=("0"+(d.getMonth()+1)).slice(-2);
   var dd=("0"+d.getDate()).slice(-2);
@@ -3821,8 +3821,8 @@ async function updateStock(tienda,insumoId,delta){
 
 async function loadFromSupabase(){
   try{
-    var ventas=await sbGet("ventas","select=*&order=timestamp.desc&limit=2000")||[];
-    var gastos=await sbGet("gastos","select=*&order=timestamp.desc&limit=2000")||[];
+    var ventas=await sbGet("ventas","select=*&order=timestamp.desc&limit=10000")||[];
+    var gastos=await sbGet("gastos","select=*&order=timestamp.desc&limit=10000")||[];
     var inventario=await sbGet("inventario","select=*")||[];
     var ventasApp=ventas.map(function(v){return {_dbId:v.id,timestamp:v.timestamp,tienda:v.tienda,total:v.total,metodo:v.metodo,items:v.items||[],comisionClip:v.comision_clip||0,netoRecibido:v.neto_recibido||v.total,comisionDidi:v.comision_didi||0,comisionML:v.comision_ml||0,cambio:v.cambio||0,estadoPago:v.estado_pago||"pagado",terminalClip:v.terminal_clip||""};});
     var gastosApp=gastos.map(function(g){return {timestamp:g.timestamp,tienda:g.tienda,seccion:g.seccion,tipo:g.tipo,monto:g.monto,desc:g.desc_gasto||"",insumoId:g.insumo_id||"",insumoNombre:g.insumo_nombre||"",cantidad:g.cantidad||0,unidad:g.unidad||"",metodoPago:g.metodo_pago||""};});
