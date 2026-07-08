@@ -1,4 +1,4 @@
-// build 45 - julio 2026
+// build 4 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -1237,7 +1237,8 @@ function POS(props){
     setExito(true);setTimeout(function(){setExito(false);},2000);
   }
   function confirmarGasto(gasto){
-    if(gasto.tipo==="insumo"&&gasto.insumoId){
+    if(gasto.tipo==="insumo"&&gasto.insumoId&&gasto.cantidad>0){
+      updateStockDelta(tiendaId,[{id:gasto.insumoId,delta:gasto.cantidad}]);
       setInsumos(function(p){return p.map(function(i){return i.id===gasto.insumoId?Object.assign({},i,{stock:(i.stock||0)+gasto.cantidad}):i;});});
     }
     onGasto(Object.assign({},gasto,{tienda:tiendaId,seccion:"caja"}));
@@ -2352,7 +2353,8 @@ function POSAmburger(props){
   }
 
   function confirmarGasto(gasto){
-    if(gasto.tipo==="insumo"&&gasto.insumoId){
+    if(gasto.tipo==="insumo"&&gasto.insumoId&&gasto.cantidad>0){
+      updateStockDelta(tiendaId,[{id:gasto.insumoId,delta:gasto.cantidad}]);
       setInsumos(function(p){return p.map(function(i){return i.id===gasto.insumoId?Object.assign({},i,{stock:(i.stock||0)+gasto.cantidad}):i;});});
     }
     onGasto(Object.assign({},gasto,{tienda:tiendaId,seccion:"caja"}));setModalGasto(false);
@@ -2939,7 +2941,7 @@ function InventarioTichi(props){
 }
 
 function FinanzasGlobal(props){
-  var ventas=props.ventas,gastos=props.gastos,insC=props.insC,insSA=props.insSA,insAmb=props.insAmb||[],insTichi=props.insTichi||[],onGasto=props.onGasto;
+  var ventas=props.ventas,gastos=props.gastos,insC=props.insC,insSA=props.insSA,insAmb=props.insAmb||[],insTichi=props.insTichi||[],onGasto=props.onGasto,onEditarGasto=props.onEditarGasto,onEliminarGasto=props.onEliminarGasto;
   var sT=useState("resumen");var tab=sT[0];var setTab=sT[1];
   var sG=useState("dias");var graf=sG[0];var setGraf=sG[1];
   var sM=useState(false);var modalExt=sM[0];var setModalExt=sM[1];
@@ -2947,7 +2949,12 @@ function FinanzasGlobal(props){
   var sFI=useState("");var fechaIni=sFI[0];var setFechaIni=sFI[1];
   var sFF=useState("");var fechaFin=sFF[0];var setFechaFin=sFF[1];
   var sTr=useState(false);var modalTransf=sTr[0];var setModalTransf=sTr[1];
+  var sEG=useState(null);var editGasto=sEG[0];var setEditGasto=sEG[1];
+  var sEGM=useState("");var editGastoMonto=sEGM[0];var setEditGastoMonto=sEGM[1];
+  var sEGD=useState("");var editGastoDesc=sEGD[0];var setEditGastoDesc=sEGD[1];
   var sFTP=useState("todas");var filtroTiendaProd=sFTP[0];var setFiltroTiendaProd=sFTP[1];
+  var sEditG=useState(null);var editGasto=sEditG[0];var setEditGasto=sEditG[1];
+  var sEditGV=useState({monto:"",desc:""});var editGastoV=sEditGV[0];var setEditGastoV=sEditGV[1];
   var sTrV=useState({de:"tarjeta_migue",para:"tarjeta_angel",monto:"",desc:""});var trv=sTrV[0];var setTrv=sTrV[1];
   function updTr(k,val){setTrv(function(p){var n={};for(var x in p)n[x]=p[x];n[k]=val;return n;});}
 
@@ -3086,6 +3093,49 @@ function FinanzasGlobal(props){
 
   return re("div",{style:{padding:"10px 10px 70px"}},
     re("div",{style:{fontSize:17,fontWeight:900,color:C.dark,marginBottom:10}},"Finanzas — Todas las tiendas"),
+
+    // ── MODAL EDITAR GASTO ──────────────────
+    editGasto?re("div",{style:OV},re("div",{style:MD},
+      re("div",{style:{fontSize:17,fontWeight:900,color:C.dark,marginBottom:14}},"Editar gasto"),
+      re("div",{style:{marginBottom:12}},
+        re("div",{style:LB},"Monto ($)"),
+        re("input",{type:"number",value:editGastoMonto,onChange:function(e){setEditGastoMonto(e.target.value);},style:Object.assign({},IP,{fontSize:18,fontWeight:700})})
+      ),
+      re("div",{style:{marginBottom:14}},
+        re("div",{style:LB},"Descripción"),
+        re("input",{type:"text",value:editGastoDesc,onChange:function(e){setEditGastoDesc(e.target.value);},style:IP})
+      ),
+      re("div",{style:{display:"flex",gap:10}},
+        re("button",{onClick:function(){setEditGasto(null);},style:BS("#f0f0f0","#666")},"Cancelar"),
+        re("button",{onClick:function(){
+          var monto=parseFloat(editGastoMonto);
+          if(!monto||monto<=0)return;
+          onEditarGasto(editGasto,{monto:monto,desc:editGastoDesc});
+          setEditGasto(null);
+        },style:BS(C.dark,"#fff",2)},"Guardar")
+      )
+    )):null,
+
+    // ── MODAL EDITAR GASTO ──────────────────
+    editGasto?re("div",{style:OV},re("div",{style:MD},
+      re("div",{style:{fontSize:17,fontWeight:800,color:C.dark,marginBottom:14}},"Editar gasto"),
+      re("div",{style:{marginBottom:12}},
+        re("div",{style:LB},"Monto ($)"),
+        re("input",{type:"number",value:editGastoV.monto,onChange:function(e){setEditGastoV(function(p){return Object.assign({},p,{monto:e.target.value});});},style:Object.assign({},IP,{fontSize:18,fontWeight:700})})
+      ),
+      re("div",{style:{marginBottom:14}},
+        re("div",{style:LB},"Descripción"),
+        re("input",{type:"text",value:editGastoV.desc,onChange:function(e){setEditGastoV(function(p){return Object.assign({},p,{desc:e.target.value});});},style:IP})
+      ),
+      re("div",{style:{display:"flex",gap:10}},
+        re("button",{onClick:function(){setEditGasto(null);},style:BS("#f0f0f0","#666")},"Cancelar"),
+        re("button",{onClick:function(){
+          if(!editGastoV.monto||parseFloat(editGastoV.monto)<=0)return;
+          if(onEditarGasto)onEditarGasto(editGasto,{monto:parseFloat(editGastoV.monto),desc:editGastoV.desc});
+          setEditGasto(null);
+        },style:BS(C.dark,"#fff",2)},"Guardar cambio")
+      )
+    )):null,
 
     // ── SALDOS POR TARJETA ────────────────
     re("div",{style:{background:"#fff",borderRadius:14,padding:16,marginBottom:14,boxShadow:"0 1px 6px rgba(0,0,0,.09)"}},
@@ -3436,8 +3486,16 @@ function FinanzasGlobal(props){
           var t=g.tienda==="centro"?"Centro":g.tienda==="sanantonio"?"S.Antonio":"Global";
           var desc=g.tipo==="insumo"?"MP: "+g.insumoNombre+" ("+fmtC(g.cantidad,g.unidad)+") ["+t+"]":g.tipo==="tarjeta_migue"?"T.Migue: "+(g.desc||""):g.tipo==="tarjeta_angel"?"T.Angel: "+(g.desc||""):g.tipo==="personal"?"Personal A&M: "+(g.desc||""):"Otro: "+(g.desc||"");
           return re("div",{key:i,style:{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:i<gastosExt.slice(0,15).length-1?"1px solid #f5f5f5":"none",fontSize:12}},
-            re("div",null,re("div",{style:{color:"#555"}},desc),re("div",{style:{fontSize:10,color:"#aaa"}},fmtFecha(g.timestamp))),
-            re("span",{style:{fontWeight:700,color:C.red,flexShrink:0,marginLeft:8}},fmt(g.monto))
+            re("div",{style:{flex:1}},re("div",{style:{color:"#555"}},desc),re("div",{style:{fontSize:10,color:"#aaa"}},fmtFecha(g.timestamp))),
+            re("div",{style:{display:"flex",alignItems:"center",gap:4,flexShrink:0}},
+              re("button",{onClick:function(){setEditGasto(g);setEditGastoV({monto:String(g.monto),desc:g.desc||""});},style:{background:"#f0f0f0",border:"none",borderRadius:6,padding:"3px 8px",fontSize:11,cursor:"pointer",color:"#555"}},"✏️"),
+              re("button",{onClick:function(){if(window.confirm("¿Eliminar este gasto de "+fmt(g.monto)+"?")&&onEliminarGasto)onEliminarGasto(g);},style:{background:"#ffebee",border:"none",borderRadius:6,padding:"3px 8px",fontSize:11,cursor:"pointer",color:"#c62828"}},"🗑️")
+            ),
+            re("div",{style:{display:"flex",alignItems:"center",gap:6,flexShrink:0,marginLeft:8}},
+              re("span",{style:{fontWeight:700,color:C.red}},fmt(g.monto)),
+              re("button",{onClick:function(e){e.stopPropagation();setEditGasto(g);setEditGastoMonto(String(g.monto));setEditGastoDesc(g.desc||"");},style:{background:"#f0f0f0",border:"none",borderRadius:6,padding:"2px 8px",fontSize:10,cursor:"pointer",color:"#555"}},"✏️"),
+              re("button",{onClick:function(e){e.stopPropagation();if(window.confirm("¿Eliminar este gasto?"))onEliminarGasto(g);},style:{background:"#ffebee",border:"none",borderRadius:6,padding:"2px 8px",fontSize:10,cursor:"pointer",color:C.red}},"🗑️")
+            )
           );
         })
       ),
@@ -3827,6 +3885,14 @@ export default function App(){
     setGastos(function(p){return [g].concat(p);});
     saveGasto(g);
   }
+  function editarGasto(gasto,changes){
+    setGastos(function(p){return p.map(function(g){return g.timestamp===gasto.timestamp&&g.tienda===gasto.tienda?Object.assign({},g,changes):g;});});
+    sbPatch("gastos","timestamp=eq."+encodeURIComponent(gasto.timestamp)+"&tienda=eq."+gasto.tienda,changes).catch(function(e){console.error("editarGasto:",e);});
+  }
+  function eliminarGasto(gasto){
+    setGastos(function(p){return p.filter(function(g){return !(g.timestamp===gasto.timestamp&&g.tienda===gasto.tienda);});});
+    sbFetch("gastos?timestamp=eq."+encodeURIComponent(gasto.timestamp)+"&tienda=eq."+gasto.tienda,"DELETE").catch(function(e){console.error("eliminarGasto:",e);});
+  }
   function insFor(tid){return tid==="centro"?insC:tid==="sanantonio"?insSA:tid==="amburger"?insAmb:insTichi;}
   function setInsFor(tid){return tid==="centro"?setInsC:tid==="sanantonio"?setInsSA:tid==="amburger"?setInsAmb:setInsTichi;}
   function insOtra(tid){return tid==="centro"?insSA:insC;}
@@ -3898,7 +3964,7 @@ export default function App(){
         re("div",{style:{fontSize:18,fontWeight:900,color:"#fff",paddingBottom:12}})
       ),
       re("div",{style:{maxWidth:900,margin:"0 auto"}},
-        re(FinanzasGlobal,{ventas:ventas,gastos:gastos,insC:insC,insSA:insSA,insAmb:insAmb,insTichi:insTichi,onGasto:addGasto})
+        re(FinanzasGlobal,{ventas:ventas,gastos:gastos,insC:insC,insSA:insSA,insAmb:insAmb,insTichi:insTichi,onGasto:addGasto,onEditarGasto:editarGasto,onEliminarGasto:eliminarGasto})
       )
     );
   }
