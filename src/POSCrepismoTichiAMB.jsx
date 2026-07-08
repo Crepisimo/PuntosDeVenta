@@ -1,4 +1,4 @@
-// build 455555 - julio 2026
+// build 10000 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -11,7 +11,7 @@ function fmt(n){return new Intl.NumberFormat("es-MX",{style:"currency",currency:
 function fmtC(n,u){return parseFloat(Number(n).toFixed(2))+" "+u;}
 function fmtFecha(ts){var d=new Date(ts);return d.toLocaleDateString("es-MX",{day:"2-digit",month:"short"})+" "+d.toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"});}
 function hoy(){
-  var d=new D5555ate();
+  var d=new Date();
   var yyyy=d.getFullYear();
   var mm=("0"+(d.getMonth()+1)).slice(-2);
   var dd=("0"+d.getDate()).slice(-2);
@@ -3482,10 +3482,10 @@ function FinanzasGlobal(props){
       re("div",{style:{background:"#fff",borderRadius:14,padding:16,boxShadow:"0 1px 6px rgba(0,0,0,.09)"}},
         re("div",{style:SC},"Gastos externos recientes"),
         gastosExt.length===0?re("div",{style:{textAlign:"center",color:"#bbb",padding:20,fontSize:13}},"Sin gastos externos"):
-        gastosExt.slice(0,15).map(function(g,i){
+        gastosExt.map(function(g,i){
           var t=g.tienda==="centro"?"Centro":g.tienda==="sanantonio"?"S.Antonio":"Global";
           var desc=g.tipo==="insumo"?"MP: "+g.insumoNombre+" ("+fmtC(g.cantidad,g.unidad)+") ["+t+"]":g.tipo==="tarjeta_migue"?"T.Migue: "+(g.desc||""):g.tipo==="tarjeta_angel"?"T.Angel: "+(g.desc||""):g.tipo==="personal"?"Personal A&M: "+(g.desc||""):"Otro: "+(g.desc||"");
-          return re("div",{key:i,style:{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:i<gastosExt.slice(0,15).length-1?"1px solid #f5f5f5":"none",fontSize:12}},
+          return re("div",{key:i,style:{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:i<gastosExt.length-1?"1px solid #f5f5f5":"none",fontSize:12}},
             re("div",{style:{flex:1}},re("div",{style:{color:"#555"}},desc),re("div",{style:{fontSize:10,color:"#aaa"}},fmtFecha(g.timestamp))),
             re("div",{style:{display:"flex",alignItems:"center",gap:4,flexShrink:0}},
               re("button",{onClick:function(){setEditGasto(g);setEditGastoV({monto:String(g.monto),desc:g.desc||""});},style:{background:"#f0f0f0",border:"none",borderRadius:6,padding:"3px 8px",fontSize:11,cursor:"pointer",color:"#555"}},"✏️"),
