@@ -1,4 +1,4 @@
-// build 10000 - julio 2026
+// build 40000 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -3082,9 +3082,10 @@ function FinanzasGlobal(props){
   function Card(l,v,col,bg){return re("div",{style:{background:bg,borderRadius:12,padding:"14px",borderLeft:"4px solid "+col}},re("div",{style:{fontSize:11,color:col,fontWeight:700,textTransform:"uppercase",marginBottom:3}},l),re("div",{style:{fontSize:22,fontWeight:900,color:col}},v));}
 
   function guardarGastoExt(){
-    if(!gv.tipo||!gv.monto){updG("err","Completa los campos");return;}
-    onGasto({seccion:"externo",tipo:gv.tipo,insumoId:null,insumoNombre:null,cantidad:0,unidad:null,monto:parseFloat(gv.monto),metodoPago:null,desc:gv.desc,tienda:"global",timestamp:new Date().toISOString()});
-    setGv({tipo:"",desc:"",monto:"",err:""});setModalExt(false);
+    if(!gv.tipo||!gv.monto||!gv.metodoPago){updG("err","Completa todos los campos");return;}
+    var tipoReal=gv.tipo==="mp_sin_inv"?"insumo":gv.tipo;
+    onGasto({seccion:"externo",tipo:tipoReal,insumoId:gv.tipo==="mp_sin_inv"?"mp_sin_especificar":null,insumoNombre:gv.tipo==="mp_sin_inv"?"Materia Prima (sin especificar)":null,cantidad:0,unidad:null,monto:parseFloat(gv.monto),metodoPago:gv.metodoPago,desc:gv.desc||"",tienda:gv.tienda||"global",timestamp:new Date().toISOString()});
+    setGv({tipo:"",desc:"",monto:"",err:"",tienda:"global",metodoPago:""});setModalExt(false);
   }
 
   var TABS=[["resumen","Resumen"],["semana","Sem. Visual"],["productos","Por Producto"],["graficas","Graficas"],["egresos","Egresos"],["ventas","Ventas"]];
@@ -3502,20 +3503,46 @@ function FinanzasGlobal(props){
       modalExt?re("div",{style:OV},re("div",{style:MD},
         re("div",{style:{fontSize:18,fontWeight:900,color:C.dark,marginBottom:16}},"Gasto externo"),
         re("div",{style:{marginBottom:14}},
-          re("div",{style:LB},"Tipo *"),
-          re("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
-            [["tarjeta_migue","💳 T. Migue"],["tarjeta_angel","💳 T. Angel"],["personal","👫 Personal A&M"],["otro","💸 Otro"]].map(function(x){var id=x[0],l=x[1],sel=gv.tipo===id;return re("button",{key:id,onClick:function(){updG("tipo",id);},style:{padding:"10px 8px",border:"2px solid "+(sel?C.dark:"#e0e0e0"),borderRadius:10,cursor:"pointer",fontWeight:sel?800:500,background:sel?C.purpleL:"#fff",color:sel?C.dark:"#666",fontSize:12,textAlign:"center"}},l);})
+          re("div",{style:LB},"Tienda"),
+          re("div",{style:{display:"flex",gap:6,flexWrap:"wrap"}},
+            [["global","🌐 Global"],["centro","Centro"],["sanantonio","S.Antonio"],["amburger","AM-Burger"],["tichi","Tichi"]].map(function(x){
+              var sel=(gv.tienda||"global")===x[0];
+              return re("button",{key:x[0],onClick:function(){updG("tienda",x[0]);},style:{padding:"7px 10px",border:"2px solid "+(sel?C.dark:"#e0e0e0"),borderRadius:9,cursor:"pointer",fontWeight:sel?800:500,background:sel?C.dark:"#fff",color:sel?"#fff":"#666",fontSize:11}},x[1]);
+            })
           )
         ),
-        re("div",{style:{marginBottom:14}},re("div",{style:LB},"Descripcion"),re("input",{type:"text",placeholder:"Descripcion",value:gv.desc,onChange:function(e){updG("desc",e.target.value);},style:IP})),
-        re("div",{style:{marginBottom:18}},re("div",{style:LB},"Monto ($) *"),re("input",{type:"number",placeholder:"0.00",value:gv.monto,onChange:function(e){updG("monto",e.target.value);},style:Object.assign({},IP,{fontSize:18,fontWeight:700})})),
-        gv.err?re("div",{style:{fontSize:12,color:C.red,marginBottom:10,fontWeight:600}},gv.err):null,
+        re("div",{style:{marginBottom:14}},
+          re("div",{style:LB},"Pago con *"),
+          re("div",{style:{display:"flex",gap:8}},
+            [["efectivo","💵 Efectivo"],["tarjeta_migue","💳 T. Migue"],["tarjeta_angel","💳 T. Angel"]].map(function(x){
+              var sel=gv.metodoPago===x[0];
+              return re("button",{key:x[0],onClick:function(){updG("metodoPago",x[0]);},style:{flex:1,padding:"10px 6px",border:"2px solid "+(sel?C.dark:"#e0e0e0"),borderRadius:10,cursor:"pointer",fontWeight:sel?800:500,background:sel?C.dark:"#fff",color:sel?"#fff":"#666",fontSize:12}},x[1]);
+            })
+          )
+        ),
+        re("div",{style:{marginBottom:14}},
+          re("div",{style:LB},"Rubro *"),
+          re("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
+            [["mp_sin_inv","📦 Materia Prima"],["colaborador","👤 Colaborador"],["operativo","⚙️ Operativo"],["personal","👫 Personal A&M"],["otro","💸 Otro"]].map(function(x){
+              var sel=gv.tipo===x[0];
+              return re("button",{key:x[0],onClick:function(){updG("tipo",x[0]);},style:{padding:"10px 8px",border:"2px solid "+(sel?C.dark:"#e0e0e0"),borderRadius:10,cursor:"pointer",fontWeight:sel?800:500,background:sel?C.dark:"#fff",color:sel?"#fff":"#666",fontSize:12,textAlign:"center"}},x[1]);
+            })
+          )
+        ),
+        re("div",{style:{marginBottom:14}},
+          re("div",{style:LB},"Descripcion"),
+          re("input",{type:"text",placeholder:"Descripcion (opcional)",value:gv.desc||"",onChange:function(e){updG("desc",e.target.value);},style:IP})
+        ),
+        re("div",{style:{marginBottom:14}},
+          re("div",{style:LB},"Monto ($) *"),
+          re("input",{type:"number",placeholder:"0.00",value:gv.monto,onChange:function(e){updG("monto",e.target.value);},style:Object.assign({},IP,{fontSize:20,fontWeight:700})})
+        ),
+        gv.err?re("div",{style:{color:C.red,fontSize:12,marginBottom:8}},gv.err):null,
         re("div",{style:{display:"flex",gap:10}},
-          re("button",{onClick:function(){setModalExt(false);setGv({tipo:"",desc:"",monto:"",err:"" });},style:BS("#f0f0f0","#666")},"Cancelar"),
+          re("button",{onClick:function(){setModalExt(false);setGv({tipo:"",desc:"",monto:"",err:"",tienda:"global",metodoPago:""});},style:BS("#f0f0f0","#666")},"Cancelar"),
           re("button",{onClick:guardarGastoExt,style:BS(C.dark,"#fff",2)},"Registrar")
         )
-      )):null
-    ):null,
+      )):null    ):null,
 
     tab==="ventas"?re("div",null,
       re("div",{style:{background:"#fff",borderRadius:14,padding:16,boxShadow:"0 1px 6px rgba(0,0,0,.09)"}},
