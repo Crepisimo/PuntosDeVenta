@@ -1,4 +1,4 @@
-// build 40000 - julio 2026
+// build 400000000000000 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -1814,6 +1814,7 @@ function Finanzas(props){
   var tTarjetaAngel=gastosFil.filter(function(g){return g.tipo==="tarjeta_angel";}).reduce(function(s,g){return s+g.monto;},0);
   var tPersonal=gastosFil.filter(function(g){return g.tipo==="personal";}).reduce(function(s,g){return s+g.monto;},0);
   var tOtro=gastosFil.filter(function(g){return g.tipo==="otro";}).reduce(function(s,g){return s+g.monto;},0);
+  var tOperativo=gastosFil.filter(function(g){return g.tipo==="operativo";}).reduce(function(s,g){return s+g.monto;},0);
 
   // Estadisticas: productos mas vendidos
   var conteoProductos={};
@@ -1953,6 +1954,7 @@ function Finanzas(props){
       re("div",{style:SC},"Desglose de egresos"),
       Row("Materia prima",totalMP,C.red),
       Row("Colaboradores",tColaboradores,C.red),
+      tOperativo>0?Row("Gasto operativo",tOperativo,C.red):null,
       Row("Gasto tarjeta Migue",tTarjetaMigue,C.red),
       Row("Gasto tarjeta Angel",tTarjetaAngel,C.red),
       Row("Gasto personal A&M",tPersonal,C.purple),
