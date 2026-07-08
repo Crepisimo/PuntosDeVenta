@@ -1,4 +1,4 @@
-// build 400000000000000 - julio 2026
+// build 40000 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -2983,7 +2983,7 @@ function FinanzasGlobal(props){
     var ld=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);
     return ld>=rango.ini&&ld<=rango.fin;
   }
-  var sGv=useState({tipo:"",desc:"",monto:"",err:""});var gv=sGv[0];var setGv=sGv[1];
+  var sGv=useState({tipo:"",desc:"",monto:"",err:"",tienda:"global",metodoPago:""});var gv=sGv[0];var setGv=sGv[1];
   function updG(k,v){setGv(function(p){var n={};for(var x in p)n[x]=p[x];n[k]=v;return n;});}
 
   var ventasFil=ventas.filter(function(v){return enRango(v.timestamp)&&v.estadoPago!=="reembolsado";});
@@ -3487,7 +3487,7 @@ function FinanzasGlobal(props){
         gastosExt.length===0?re("div",{style:{textAlign:"center",color:"#bbb",padding:20,fontSize:13}},"Sin gastos externos"):
         gastosExt.map(function(g,i){
           var t=g.tienda==="centro"?"Centro":g.tienda==="sanantonio"?"S.Antonio":"Global";
-          var desc=g.tipo==="insumo"?"MP: "+g.insumoNombre+" ("+fmtC(g.cantidad,g.unidad)+") ["+t+"]":g.tipo==="tarjeta_migue"?"T.Migue: "+(g.desc||""):g.tipo==="tarjeta_angel"?"T.Angel: "+(g.desc||""):g.tipo==="personal"?"Personal A&M: "+(g.desc||""):"Otro: "+(g.desc||"");
+          var desc=g.tipo==="insumo"?"MP: "+g.insumoNombre+" ("+fmtC(g.cantidad,g.unidad)+") ["+t+"]":g.tipo==="tarjeta_migue"?"T.Migue: "+(g.desc||""):g.tipo==="tarjeta_angel"?"T.Angel: "+(g.desc||""):g.tipo==="personal"?"Personal A&M: "+(g.desc||""):g.tipo==="colaborador"?"Colaborador: "+(g.desc||""):g.tipo==="operativo"?"Operativo: "+(g.desc||""):"Otro: "+(g.desc||"");
           return re("div",{key:i,style:{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:i<gastosExt.length-1?"1px solid #f5f5f5":"none",fontSize:12}},
             re("div",{style:{flex:1}},re("div",{style:{color:"#555"}},desc),re("div",{style:{fontSize:10,color:"#aaa"}},fmtFecha(g.timestamp))),
             re("div",{style:{display:"flex",alignItems:"center",gap:4,flexShrink:0}},
