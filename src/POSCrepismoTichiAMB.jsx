@@ -1,4 +1,4 @@
-// build 4122398729384729834 - julio 2026
+// build 430847298374928741987391827391823 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -1958,7 +1958,7 @@ function Finanzas(props){
       tOperativo>0?Row("Gasto operativo",tOperativo,C.red):null,
       Row("Gasto tarjeta Migue",tTarjetaMigue,C.red),
       Row("Gasto tarjeta Angel",tTarjetaAngel,C.red),
-      Row("Gasto personal A&M",tPersonal,C.purple),
+      Row("Gasto personal A&M",tPersonalFG,C.purple),
       Row("Otros gastos",tOtro,C.red),
       Row("Comision Clip",tc,C.red),
         tDidiComision>0?Row("Comision Didi",tDidiComision,C.red):null,
@@ -3476,12 +3476,12 @@ function FinanzasGlobal(props){
       re("div",{style:{background:"#fff",borderRadius:14,padding:16,marginBottom:14,boxShadow:"0 1px 6px rgba(0,0,0,.09)"}},
         re("div",{style:SC},"Desglose de egresos"),
         Row("Materia prima",totalMP,C.red),
-        Row("Colaboradores",tColab,C.red),
-        Row("Gasto operativo",tOper,C.red),
+        Row("Colaboradores",tColaboradores,C.red),
+        Row("Gasto operativo",tOperativo,C.red),
         Row("Tarjeta Migue",tTarMigue,C.red),
         Row("Tarjeta Angel",tTarAngel,C.red),
-        Row("Gasto personal A&M",tPersonal,C.purple),
-        Row("Otros",tOtroCaja+tOtroExt,C.red),
+        Row("Gasto personal A&M",tPersonalFG,C.purple),
+        Row("Otros",tOtroFG,C.red),
         Row("Comision Clip",tc,C.red),
         tDidiComision>0?Row("Comision Didi",tDidiComision,C.red):null,
         tComisionML>0?Row("Comision Mercado Libre",tComisionML,C.red):null,
