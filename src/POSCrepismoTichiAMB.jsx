@@ -1,4 +1,4 @@
-// build1212408273982374923 - julio 2026
+// build 413123250274928374928374 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -2990,6 +2990,12 @@ function FinanzasGlobal(props){
 
   var ventasFil=ventas.filter(function(v){return enRango(v.timestamp)&&v.estadoPago!=="reembolsado";});
   var gastosFil=gastos.filter(function(g){return enRango(g.timestamp);});
+  var tColaboradores=gastosFil.filter(function(g){return g.tipo==="colaborador";}).reduce(function(s,g){return s+g.monto;},0);
+  var tOperativo=gastosFil.filter(function(g){return g.tipo==="operativo";}).reduce(function(s,g){return s+g.monto;},0);
+  var tTarjetaMigue=gastosFil.filter(function(g){return g.tipo==="tarjeta_migue";}).reduce(function(s,g){return s+g.monto;},0);
+  var tTarjetaAngel=gastosFil.filter(function(g){return g.tipo==="tarjeta_angel";}).reduce(function(s,g){return s+g.monto;},0);
+  var tPersonalFG=gastosFil.filter(function(g){return g.tipo==="personal";}).reduce(function(s,g){return s+g.monto;},0);
+  var tOtroFG=gastosFil.filter(function(g){return g.tipo==="otro";}).reduce(function(s,g){return s+g.monto;},0);
 
   // Saldos por origen de dinero
   // Efectivo
