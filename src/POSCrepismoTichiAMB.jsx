@@ -1,4 +1,4 @@
-// build 413123250274928374928374 - julio 2026
+// build 4122398729384729834 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -3036,7 +3036,7 @@ function FinanzasGlobal(props){
   var gastosAmb=gastosInsumo.filter(function(g){return g.insumoId&&g.insumoId.indexOf("amb_")===0;});
   var tvCrep=ventasFil.filter(function(v){return v.tienda!=="amburger"&&v.tienda!=="tichi";}).reduce(function(s,v){return s+v.total;},0);
   // MP control Crepisimo (only after tvCrep is defined)
-  var totalMP=gastosInsumo.reduce(function(s,g){return s+g.monto;},0);
+  var totalMP=gastosCrep.reduce(function(s,g){return s+g.monto;},0);
   var presupMP=tvCrep*META_MP;
   var excede=totalMP>presupMP;
   var cMP=excede?C.red:C.green;
