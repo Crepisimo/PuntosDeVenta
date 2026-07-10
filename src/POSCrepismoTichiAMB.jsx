@@ -1,4 +1,4 @@
-// build 430847298374928741987391827391823 - julio 2026
+// build 4587658765876587658756875 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -761,8 +761,7 @@ function Modal2Crepisimas(props){
       re("button",{type:"button",onClick:onClose,style:BS("#f0f0f0","#666")},"Cancelar"),
       re("button",{type:"button",onClick:function(){
         if(!masa1||untables1.length===0||!masa2||untables2.length===0){setErr("Completa los 2 pasos de cada Crepisima");return;}
-        var mp1=CD_UNTABLE_MP[untable1];
-        var mp2=CD_UNTABLE_MP[untable2];
+
         var unt1Str=untables1.join(" + ");
           var unt2Str=untables2.join(" + ");
           onAdd([
@@ -1730,11 +1729,8 @@ function Inventario(props){
           var delta=editMode==="sumar"?val:editMode==="restar"?-val:null;
           var nuevo=editMode==="sumar"?(editIns.stock||0)+val:editMode==="restar"?Math.max(0,(editIns.stock||0)-val):val;
           var costoPorU=editPrecio&&editCantPaq&&parseFloat(editPrecio)>0&&parseFloat(editCantPaq)>0?parseFloat(editPrecio)/parseFloat(editCantPaq):editIns.costoPorU;
-          if(delta!==null){updateStockDelta(tiendaId,[{id:editIns.id,delta:delta}]);}
-          else{saveInventario(tiendaId,insumos.map(function(i){return i.id===editIns.id?Object.assign({},i,{stock:nuevo,costoPorU:costoPorU}):i;}));}
-          var stockDelta=nuevo-(editIns.stock||0);
-          updateStockDelta(tiendaId,[{id:editIns.id,delta:stockDelta}]);
-          setInsumos(function(p){return p.map(function(i){return i.id===editIns.id?Object.assign({},i,{stock:nuevo,costoPorU:costoPorU}):i;});});
+          var delta=nuevo-(editIns.stock||0);
+          updateStockDelta(tiendaId,[{id:editIns.id,delta:delta}]);
           setModalEdit(false);setEditIns(null);setEditVal("");setEditPrecio("");setEditCantPaq("");
         },style:BS(C.dark,"#fff",2)},"Guardar")
       )
