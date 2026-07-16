@@ -3237,11 +3237,13 @@ export default function App(){
   var sLoad=useState(true);var cargando=sLoad[0];var setCargando=sLoad[1];
   var sErr=useState("");var sbError=sErr[0];var setSbError=sErr[1];
 
+  // Load from Supabase on mount
   React.useEffect(function(){
     loadFromSupabase().then(function(data){
       if(data){
         setVentas(data.ventas);
         setGastos(data.gastos);
+        // Restore inventario stock
         var inv=data.inventario;
         if(inv&&inv.length>0){
           function restoreIns(setFn,tiendaId,mkFn){
@@ -3252,66 +3254,198 @@ export default function App(){
               });
             });
           }
-          restoreIns(setInsC,"centro",mkInsumos);
-          restoreIns(setInsSA,"sanantonio",mkInsumos);
-          restoreIns(setInsAmb,"amburger",mkInsumosAmb);
-          restoreIns(setInsTichi,"tichi",mkInsumosTichi);
+          restoreIns(setInsC,"centro");
+          restoreIns(setInsSA,"sanantonio");
+          restoreIns(setInsAmb,"amburger");
+          restoreIns(setInsTichi,"tichi");
         }
+      } else {
+        setSbError("No se pudo conectar a la base de datos");
       }
-      setCargando(false);
-    }).catch(function(e){
-      setSbError("Error de conexión: "+e.message);
       setCargando(false);
     });
   },[]);
+  var sVist=useState("selector");var vista=sVist[0];var setVista=sVist[1];
+  var sTid=useState(null);var tiendaId=sTid[0];var setTiendaId=sTid[1];
+  var sSec=useState("pos");var seccion=sSec[0];var setSeccion=sSec[1];
+  var sPinM=useState(false);var pinModal=sPinM[0];var setPinModal=sPinM[1];
+  var sPinOk=useState(false);var pinOk=sPinOk[0];var setPinOk=sPinOk[1];
 
-  function addGasto(g){
-    setGastos(function(p){return [g].concat(p);});
-    saveGasto(g);
-  }
+  // Save inventario to Supabase when it changes (debounced)
+  // Stock saved via delta updates (multi-device safe)
+
   function addVenta(v){
     setVentas(function(p){return [v].concat(p);});
     saveVenta(v);
   }
+  function addGasto(g){
+    setGastos(function(p){return [g].concat(p);});
+    saveGasto(g);
+  }
+  function editarGasto(gasto,changes){
+    setGastos(function(p){return p.map(function(g){return g.timestamp===gasto.timestamp&&g.tienda===gasto.tienda?Object.assign({},g,changes):g;});});
+    sbPatch("gastos","timestamp=eq."+encodeURIComponent(gasto.timestamp)+"&tienda=eq."+gasto.tienda,changes).catch(function(e){console.error("editarGasto:",e);});
+  }
+  function eliminarGasto(gasto){
+    setGastos(function(p){return p.filter(function(g){return !(g.timestamp===gasto.timestamp&&g.tienda===gasto.tienda);});});
+    sbFetch("gastos?timestamp=eq."+encodeURIComponent(gasto.timestamp)+"&tienda=eq."+gasto.tienda,"DELETE").catch(function(e){console.error("eliminarGasto:",e);});
+  }
+  function insFor(tid){return tid==="centro"?insC:tid==="sanantonio"?insSA:tid==="amburger"?insAmb:insTichi;}
+  function setInsFor(tid){return tid==="centro"?setInsC:tid==="sanantonio"?setInsSA:tid==="amburger"?setInsAmb:setInsTichi;}
+  function insOtra(tid){return tid==="centro"?insSA:insC;}
+  function setInsOtra(tid){return tid==="centro"?setInsSA:setInsC;}
 
-  var sTienda=useState("centro");var tiendaId=sTienda[0];var setTiendaId=sTienda[1];
+  var alertC=insC.filter(function(i){return (i.stock||0)<=i.minimo&&i.minimo>0;}).length;
+  var alertSA=insSA.filter(function(i){return (i.stock||0)<=i.minimo&&i.minimo>0;}).length;
+  var alertAmb=insAmb.filter(function(i){return (i.stock||0)<=i.minimo&&i.minimo>0;}).length;
+  var alertTichi=insTichi.filter(function(i){return (i.stock||0)<=i.minimo&&i.minimo>0;}).length;
 
-  if(cargando)return re("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",flexDirection:"column",gap:16}},
-    re("div",{style:{fontSize:40}},"⏳"),
-    re("div",{style:{fontSize:16,color:"#888"}},"Cargando...")
-  );
-  if(sbError)return re("div",{style:{padding:24,color:"#ef4444",textAlign:"center"}},sbError);
+  // Loading screen while fetching from Supabase
+  if(cargando){
+    return re("div",{style:{minHeight:"100vh",background:"#f0f2f7",fontFamily:"'Segoe UI',system-ui,sans-serif",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16}},
+      re("div",{style:{fontSize:40}},"⏳"),
+      re("div",{style:{fontSize:18,fontWeight:700,color:C.dark}},"Cargando datos..."),
+      re("div",{style:{fontSize:13,color:"#aaa"}},"Conectando con la base de datos")
+    );
+  }
 
-  // Render tienda
+  if(sbError){
+    return re("div",{style:{minHeight:"100vh",background:"#f0f2f7",fontFamily:"'Segoe UI',system-ui,sans-serif",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24}},
+      re("div",{style:{fontSize:40}},"⚠️"),
+      re("div",{style:{fontSize:18,fontWeight:700,color:C.red}},"Error de conexion"),
+      re("div",{style:{fontSize:13,color:"#666",textAlign:"center"}},sbError),
+      re("button",{onClick:function(){setCargando(true);setSbError("");loadFromSupabase().then(function(data){if(data){setVentas(data.ventas);setGastos(data.gastos);}else{setSbError("No se pudo conectar");}setCargando(false);});},style:{marginTop:8,padding:"12px 24px",background:C.dark,color:"#fff",border:"none",borderRadius:12,fontWeight:700,fontSize:14,cursor:"pointer"}},"Reintentar")
+    );
+  }
+
+  if(vista==="selector"){
+    return re("div",{style:{minHeight:"100vh",background:"#f0f2f7",fontFamily:"'Segoe UI',system-ui,sans-serif",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:16}},
+      re("div",{style:{fontSize:11,fontWeight:700,color:"#aaa",letterSpacing:2,textTransform:"uppercase",marginBottom:8}},"Sistema de Ventas"),
+      re("div",{style:{fontSize:26,fontWeight:900,color:C.dark,marginBottom:32}},"Crepísimo"),
+      re("div",{style:{width:"100%",maxWidth:500}},
+        TIENDAS.map(function(t){
+          var alerts=t.id==="centro"?alertC:t.id==="sanantonio"?alertSA:t.id==="amburger"?alertAmb:alertTichi;
+          return re("button",{key:t.id,onClick:function(){setTiendaId(t.id);setSeccion("pos");setVista("tienda");},style:{width:"100%",background:"#fff",border:"2px solid "+C.dark,borderRadius:16,padding:20,marginBottom:12,cursor:"pointer",display:"flex",alignItems:"center",gap:14,boxShadow:"0 2px 8px rgba(0,0,0,.08)"}},
+            re("div",{style:{fontSize:36}},t.emoji),
+            re("div",{style:{flex:1,textAlign:"left"}},
+              re("div",{style:{fontSize:16,fontWeight:900,color:C.dark}},t.nombre),
+              alerts>0?re("div",{style:{fontSize:12,color:C.amber,fontWeight:600,marginTop:2}},"Alertas: "+alerts+" insumos"):re("div",{style:{fontSize:12,color:"#aaa",marginTop:2}},"Sin alertas")
+            ),
+            re("div",{style:{fontSize:20,color:C.dark}},"->")
+          );
+        }),
+        re("button",{onClick:function(){if(pinOk){setVista("finanzas");}else{setPinModal(true);}},style:{width:"100%",background:C.dark,border:"none",borderRadius:16,padding:20,cursor:"pointer",display:"flex",alignItems:"center",gap:14,boxShadow:"0 2px 8px rgba(0,0,0,.12)"}},
+          re("div",{style:{fontSize:36}},"📊"),
+          re("div",{style:{flex:1,textAlign:"left"}},
+            re("div",{style:{fontSize:16,fontWeight:900,color:"#fff"}},"Finanzas Globales"),
+            re("div",{style:{fontSize:12,color:"rgba(255,255,255,.6)",marginTop:2}},pinOk?"Todas las tiendas":"🔒 Requiere PIN")
+          ),
+          re("div",{style:{fontSize:20,color:"rgba(255,255,255,.6)"}},"->")
+        )
+      ),
+      re("button",{onClick:function(){window.conectarImpresora&&window.conectarImpresora().then(function(ok){alert(ok?"Impresora conectada!":"No se pudo conectar. Verifica que la impresora este encendida y pareada.");});},style:{width:"100%",background:"#fff",border:"2px solid #e0e0e0",borderRadius:16,padding:16,cursor:"pointer",display:"flex",alignItems:"center",gap:14,marginTop:8,boxShadow:"0 1px 4px rgba(0,0,0,.06)"}},
+        re("div",{style:{fontSize:30}},"🖨️"),
+        re("div",{style:{flex:1,textAlign:"left"}},
+          re("div",{style:{fontSize:14,fontWeight:700,color:"#333"}},"Conectar impresora"),
+          re("div",{style:{fontSize:12,color:"#aaa",marginTop:2}},"Bluetooth - Impresora termica")
+        )
+      ),
+      pinModal?re(ModalPin,{onAcceso:function(){setPinOk(true);setPinModal(false);setVista("finanzas");},onClose:function(){setPinModal(false);}}):null
+    );
+  }
+
+  if(vista==="finanzas"){
+    return re("div",{style:{minHeight:"100vh",background:"#f0f2f7",fontFamily:"'Segoe UI',system-ui,sans-serif"}},
+      re("div",{style:{background:C.dark,padding:"14px 14px 0",position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 8px rgba(0,0,0,.2)"}},
+        re("button",{onClick:function(){setVista("selector");},style:{background:"rgba(255,255,255,.2)",color:"#fff",border:"2px solid rgba(255,255,255,.5)",borderRadius:10,fontWeight:800,fontSize:14,cursor:"pointer",padding:"8px 16px",marginBottom:8,display:"block"}},"← Inicio"),
+        re("div",{style:{fontSize:18,fontWeight:900,color:"#fff",paddingBottom:12}})
+      ),
+      re("div",{style:{maxWidth:900,margin:"0 auto"}},
+        re(FinanzasGlobal,{ventas:ventas,gastos:gastos,insC:insC,insSA:insSA,insAmb:insAmb,insTichi:insTichi,onGasto:addGasto,onEditarGasto:editarGasto,onEliminarGasto:eliminarGasto})
+      )
+    );
+  }
+
+  // Vista tienda
   var tid=tiendaId;
   var tInfo=TIENDAS.find(function(t){return t.id===tid;})||TIENDAS[0];
+  var ins=insFor(tid);
+  var setIns=setInsFor(tid);
+  var alertCount=ins.filter(function(i){return (i.stock||0)<=i.minimo&&i.minimo>0;}).length;
 
-  if(tid==="centro")return re(POS,{
-    tiendaId:"centro",tiendaInfo:tInfo,
-    insumos:insC,setInsumos:setInsC,
-    ventas:ventas,gastos:gastos,
-    onVenta:addVenta,onGasto:addGasto,
-    onCambiarTienda:setTiendaId,TIENDAS:TIENDAS
-  });
-  if(tid==="sanantonio")return re(POS,{
-    tiendaId:"sanantonio",tiendaInfo:tInfo,
-    insumos:insSA,setInsumos:setInsSA,
-    ventas:ventas,gastos:gastos,
-    onVenta:addVenta,onGasto:addGasto,
-    onCambiarTienda:setTiendaId,TIENDAS:TIENDAS
-  });
-  if(tid==="amburger")return re(POSAmburger,{
-    tiendaId:"amburger",tiendaInfo:tInfo,
-    insumos:insAmb,setInsumos:setInsAmb,
-    ventas:ventas,gastos:gastos,
-    onVenta:addVenta,onGasto:addGasto,
-    onCambiarTienda:setTiendaId,TIENDAS:TIENDAS
-  });
-  if(tid==="tichi")return re(POSTichi,{
-    tiendaId:"tichi",tiendaInfo:tInfo,
-    insumos:insTichi,setInsumos:setInsTichi,
-    ventas:ventas,gastos:gastos,
-    onVenta:addVenta,onGasto:addGasto,
-    onCambiarTienda:setTiendaId,TIENDAS:TIENDAS
-  });
+  function irSec(id){
+    if(id==="pos"||id==="pedidos"){setSeccion(id);return;}
+    if(id==="finanzas"){if(pinOk){setVista("finanzas");}else{setPinModal(true);}return;}
+    if(pinOk){setSeccion(id);}else{setPinModal(true);}
+  }
+
+  return re("div",{style:{minHeight:"100vh",background:"#f0f2f7",fontFamily:"'Segoe UI',system-ui,sans-serif"}},
+    re("div",{style:{background:tid==="amburger"?"#1a237e":tid==="tichi"?TC.dark:C.dark,paddingTop:10,position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 8px rgba(0,0,0,.2)"}},
+      re("div",{style:{maxWidth:900,margin:"0 auto"}},
+        re("div",{style:{padding:"0 14px",marginBottom:2}},
+          re("button",{onClick:function(){setVista("selector");},style:{background:"none",border:"none",color:"rgba(255,255,255,.7)",fontSize:12,cursor:"pointer",padding:0,marginBottom:2,display:"block"}},"<- Inicio"),
+          re("div",{style:{fontSize:16,fontWeight:900,color:"#fff"}},tInfo.emoji+" "+tInfo.nombre)
+        ),
+        re("div",{style:{display:"flex",padding:"6px 14px 0",overflowX:"auto",gap:2}},
+          [["pos","Ventas"],["pedidos","Pedidos"],["inventario","Inv."+(alertCount>0?" !":"")],["finanzas","Finanzas"]].map(function(x){
+            var id=x[0],lbl=x[1],sel=seccion===id&&vista==="tienda";
+            return re("button",{key:id,onClick:function(){irSec(id);},style:{padding:"7px 10px",border:"none",cursor:"pointer",background:sel?"#fff":"transparent",color:sel?(tid==="amburger"?"#1a237e":tid==="tichi"?TC.dark:C.dark):"rgba(255,255,255,.85)",fontWeight:sel?800:500,fontSize:13,borderRadius:"8px 8px 0 0",whiteSpace:"nowrap"}},
+              lbl+((id==="inventario"||id==="finanzas")&&!pinOk?" 🔒":"")
+            );
+          })
+        )
+      )
+    ),
+    re("div",{style:{maxWidth:900,margin:"0 auto"}},
+      seccion==="pos"?tid==="tichi"?re(POSTichi,{tiendaId:tid,insumos:ins,setInsumos:setIns,onVenta:function(v){addVenta(Object.assign({},v,{tienda:tid}));},onGasto:function(g){addGasto(Object.assign({},g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):tid==="amburger"?re(POSAmburger,{tiendaId:tid,insumos:ins,setInsumos:setIns,onVenta:function(v){addVenta(Object.assign({},v,{tienda:tid}));},onGasto:function(g){addGasto(Object.assign({},g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):re(POS,{tiendaId:tid,insumos:ins,setInsumos:setIns,onVenta:function(v){addVenta(Object.assign({},v,{tienda:tid}));},onGasto:function(g){addGasto(Object.assign({},g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):null,
+      seccion==="pedidos"?tid==="tichi"?re(PedidosTichi,{ventas:ventas.filter(function(v){return v.tienda===tid;}),tiendaId:tid,
+              onActualizarPago:function(ts){setVentas(function(p){return p.map(function(v){return v.timestamp===ts?Object.assign({},v,{estadoPago:"pagado"}):v;});});updateEstadoPago([ts]);},
+              onReembolso:function(venta){
+                setVentas(function(p){return p.map(function(v){return v.timestamp===venta.timestamp?Object.assign({},v,{estadoPago:"reembolsado"}):v;});});
+                if(venta._dbId){updateVentaById(venta._dbId,{estado_pago:"reembolsado"});}else{updateEstadoPago([venta.timestamp],"reembolsado");}
+                setInsTichi(function(prev){
+                  var newIns=prev.map(function(i){return Object.assign({},i);});
+                  (venta.items||[]).forEach(function(item){
+                    if(item.esDescuento||item.esEnvio)return;
+                    var rec=R_TICHI_PROD[item.recetaKey]||[];
+                    rec.forEach(function(r){var ins=newIns.find(function(x){return x.id===r.id;});if(ins)ins.stock=(ins.stock||0)+r.c;});
+                  });
+                  return newIns;
+                });
+              }}):re(Pedidos,{ventas:ventas,tiendaId:tid,
+          onActualizarPago:function(timestamps,tipo,montoReal,comision){setVentas(function(p){return p.map(function(v){return timestamps.includes(v.timestamp)?Object.assign({},v,{estadoPago:"pagado",netoRecibido:montoReal?(montoReal/Math.max(1,timestamps.length)):v.netoRecibido,comisionDidi:comision?(comision/Math.max(1,timestamps.length)):v.comisionDidi}):v;});});updateEstadoPago(timestamps);},
+          onReembolso:function(venta){
+            // Mark as reembolsado
+            setVentas(function(p){return p.map(function(v){return v.timestamp===venta.timestamp?Object.assign({},v,{estadoPago:"reembolsado"}):v;});});
+            if(venta._dbId){updateVentaById(venta._dbId,{estado_pago:"reembolsado"});}else{updateEstadoPago([venta.timestamp],"reembolsado");}
+            // Restore MP inventory
+            var insKey=tid==="centro"?"centro":tid==="sanantonio"?"sanantonio":tid==="amburger"?"amburger":"tichi";
+            var setFn=insKey==="centro"?setInsC:insKey==="sanantonio"?setInsSA:insKey==="amburger"?setInsAmb:setInsTichi;
+            var recipes=insKey==="amburger"?R_AMB:insKey==="tichi"?R_TICHI_PROD:R;
+            setFn(function(prev){
+              var newIns=prev.map(function(i){return Object.assign({},i);});
+              (venta.items||[]).forEach(function(item){
+                if(item.esDescuento||item.esEnvio)return;
+                var rk=item.esEmpleado?(item.recetaBase||""):item.recetaKey;
+                var rec=recipes[rk]||[];
+                rec.forEach(function(r){
+                  if(item.esEmpleado&&EMPAQUE_IDS.indexOf(r.id)>=0)return;
+                  var ins=newIns.find(function(x){return x.id===r.id;});
+                  if(ins)ins.stock=(ins.stock||0)+r.c;
+                });
+              });
+              return newIns;
+            });
+          }
+        }):null,
+      seccion==="inventario"?tid==="tichi"?re(InventarioTichi,{insumos:ins,setInsumos:setIns,onGasto:function(g){addGasto(Object.assign({},g,{tienda:tid}));},tiendaId:tid}):re(Inventario,{
+        insumos:ins,setInsumos:setIns,
+        onGasto:function(g){addGasto(Object.assign({},g,{tienda:tid}));},
+        tiendaId:tid,
+        insumosOtra:insOtra(tid),
+        setInsumosOtra:setInsOtra(tid),
+      }):null
+    ),
+    pinModal?re(ModalPin,{onAcceso:function(){setPinOk(true);setPinModal(false);setVista("finanzas");},onClose:function(){setPinModal(false);}}):null
+  );
 }
