@@ -1,4 +1,4 @@
-// build 43565675 - julio 2026
+// build 423894729384790436592346589327465982374659823764592837029834091834 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -116,7 +116,6 @@ var INSUMOS_INIT=[
   {id:"tajin",nombre:"Tajin",unidad:"g",minimo:159},
   {id:"coco_rayado",nombre:"Coco rayado",unidad:"g",minimo:10},
   {id:"tapioca",nombre:"Tapioca",unidad:"pza",minimo:5},
-,
   {id:"coulis_tuna",nombre:"Coulis de tuna roja",unidad:"g",stock:0,minimo:200},
   {id:"jar_jamaica",nombre:"Jarabe de jamaica",unidad:"ml",stock:0,minimo:500},
   {id:"quesillo",nombre:"Quesillo",unidad:"porcion",stock:0,minimo:5},
