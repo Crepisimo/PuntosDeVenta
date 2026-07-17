@@ -1,4 +1,4 @@
-// build 43423874928374 - julio 2026
+// build 43565675 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -1770,6 +1770,7 @@ function Finanzas(props){
   // gastos y ventas ya vienen filtrados por tienda desde App
   var ventasFil=ventas;
   var gastosFil=gastos;
+  var tComisionML=ventasFil.filter(function(v){return v.metodo==="mercadolibre";}).reduce(function(s,v){return s+(v.comisionML||(v.total-(v.netoRecibido||v.total)));},0);
   var s1=useState("dia");var periodo=s1[0];var setPeriodo=s1[1];
   var s2=useState("ventas_dia");var graficaActiva=s2[0];var setGraficaActiva=s2[1];
 
@@ -3442,6 +3443,19 @@ export default function App(){
         tiendaId:tid,
         insumosOtra:insOtra(tid),
         setInsumosOtra:setInsOtra(tid),
+        ventas:ventas.filter(function(v){return v.tienda===tid;}),
+        gastos:gastos.filter(function(g){return g.tienda===tid;}),
+        onVenta:addVenta,
+        onTransferir:function(insId,cantFrom,cantTo,otraTienda){
+          updateStockDelta(tid,[{id:insId,delta:-cantFrom}]);
+          updateStockDelta(otraTienda,[{id:insId,delta:cantTo}]);
+        },
+        onActualizarPago:function(v,estado){
+          setVentas(function(p){return p.map(function(x){return x===v?Object.assign({},x,{estadoPago:estado}):x;});});
+        },
+        onReembolso:function(v){
+          setVentas(function(p){return p.map(function(x){return x===v?Object.assign({},x,{estadoPago:"reembolsado"}):x;});});
+        },
       }):null,
       seccion==="finanzas"?re(Finanzas,{ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;}),insumos:ins,tiendaId:tid,onGasto:function(g){addGasto(Object.assign({},g,{tienda:tid}));},onEditarGasto:editarGasto,onEliminarGasto:eliminarGasto}):null
     ),
