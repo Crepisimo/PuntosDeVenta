@@ -1,4 +1,4 @@
-// build 4121278736482736482736192830192809384 - julio 2026
+// build 4134293874298379237'12093'1209251948534658465934 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -3363,7 +3363,7 @@ export default function App(){
 
   function irSec(id){
     if(id==="pos"||id==="pedidos"){setSeccion(id);return;}
-    if(id==="finanzas"){if(pinOk){setSeccion("finanzas");}else{setPinModal(true);}return;}
+    
     if(pinOk){setSeccion(id);}else{setPinModal(true);}
   }
 
@@ -3375,7 +3375,7 @@ export default function App(){
           re("div",{style:{fontSize:16,fontWeight:900,color:"#fff"}},tInfo.emoji+" "+tInfo.nombre)
         ),
         re("div",{style:{display:"flex",padding:"6px 14px 0",overflowX:"auto",gap:2}},
-          [["pos","Ventas"],["pedidos","Pedidos"],["inventario","Inv."+(alertCount>0?" !":"")],["finanzas","Finanzas"]].map(function(x){
+          [["pos","Ventas"],["pedidos","Pedidos"],["inventario","Inv."+(alertCount>0?" !":"")]].map(function(x){
             var id=x[0],lbl=x[1],sel=seccion===id&&vista==="tienda";
             return re("button",{key:id,onClick:function(){irSec(id);},style:{padding:"7px 10px",border:"none",cursor:"pointer",background:sel?"#fff":"transparent",color:sel?(tid==="amburger"?"#1a237e":tid==="tichi"?TC.dark:C.dark):"rgba(255,255,255,.85)",fontWeight:sel?800:500,fontSize:13,borderRadius:"8px 8px 0 0",whiteSpace:"nowrap"}},
               lbl+((id==="inventario"||id==="finanzas")&&!pinOk?" 🔒":"")
