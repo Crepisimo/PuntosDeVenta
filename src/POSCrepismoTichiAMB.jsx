@@ -1,4 +1,4 @@
-// build 4 - julio 2026
+// build 42343 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -1767,6 +1767,9 @@ function BarChart(props){
 
 function Finanzas(props){
   var ventas=props.ventas,gastos=props.gastos,insumos=props.insumos||[];
+  // gastos y ventas ya vienen filtrados por tienda desde App
+  var ventasFil=ventas;
+  var gastosFil=gastos;
   var s1=useState("dia");var periodo=s1[0];var setPeriodo=s1[1];
   var s2=useState("ventas_dia");var graficaActiva=s2[0];var setGraficaActiva=s2[1];
 
