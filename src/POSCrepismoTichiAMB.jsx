@@ -1,4 +1,4 @@
-// build 4238749283749283792873498273492837492834 - julio 2026
+// build 4865765765354309809808 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -116,7 +116,11 @@ var INSUMOS_INIT=[
   {id:"tajin",nombre:"Tajin",unidad:"g",minimo:159},
   {id:"coco_rayado",nombre:"Coco rayado",unidad:"g",minimo:10},
   {id:"tapioca",nombre:"Tapioca",unidad:"pza",minimo:5},
-];
+,
+  {id:"coulis_tuna",nombre:"Coulis de tuna roja",unidad:"g",stock:0,minimo:200},
+  {id:"jar_jamaica",nombre:"Jarabe de jamaica",unidad:"ml",stock:0,minimo:500},
+  {id:"quesillo",nombre:"Quesillo",unidad:"porcion",stock:0,minimo:5},
+  {id:"chorizo",nombre:"Chorizo",unidad:"porcion",stock:0,minimo:5}];
 
 var MB=[
   {id:"harina",c:760/21},{id:"azucar_masa",c:240/21},
@@ -125,6 +129,9 @@ var MB=[
 ];
 
 var R={
+  "Horchatisimo":[{id:"leche_deslac",c:180.0},{id:"base_horchata",c:60.0},{id:"hielo",c:0.33},{id:"coulis_tuna",c:90.0},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
+  "Refresher Jamaica":[{id:"agua_mineral",c:300.0},{id:"jar_jamaica",c:49.5},{id:"perlas_fresa",c:30.0},{id:"fresa",c:60.0},{id:"hielo",c:0.18},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
+  "Chorisima":MB.concat([{id:"quesillo",c:1},{id:"philadelphia",c:35},{id:"chorizo",c:1},{id:"caja_crepa",c:1},{id:"papel_alim",c:1}]),
   "Oreo":[{id:"leche_deslac",c:118.3},{id:"oreo",c:59.1},{id:"choc_polvo",c:8.9},{id:"base_neutra",c:29.6},{id:"hielo",c:0.2957},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
   "Mango-Taro":[{id:"leche_deslac",c:118.3},{id:"jar_mango",c:118.3},{id:"mango",c:29.6},{id:"base_neutra",c:29.6},{id:"hielo",c:0.2662},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
   "Chocolate":[{id:"leche_deslac",c:118.3},{id:"choc_polvo",c:44.4},{id:"base_neutra",c:29.6},{id:"hielo",c:0.2957},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
@@ -196,7 +203,7 @@ var MENU=[
   {id:"smoothies",nombre:"Smoothies",emoji:"🍓",precio:75,tipo:"simple",prods:["Fresa Platano","Mango Durazno"]},
   {id:"slush",nombre:"Slush",emoji:"🧊",precio:65,tipo:"simple",prods:["Slush Fresa","Slush Mango","Slush Pina"]},
   {id:"sodas",nombre:"Sodas Italianas",emoji:"🫧",precio:45,tipo:"simple",prods:["Pink Lemonade","Manzana Verde","Mora Azul","Soda Fresa","Soda Mango","Sandia","Soda Frutos Rojos"]},
-  {id:"temporada",nombre:"Beb. Temporada",emoji:"✨",precio:null,tipo:"variable",prods:[{n:"Matchata",p:95},{n:"Nube Tejate",p:75},{n:"Mango Pop",p:65},{n:"Berry Chill",p:70}]},
+  {id:"temporada",nombre:"Beb. Temporada",emoji:"✨",precio:null,tipo:"variable",prods:[{n:"Horchatisimo",p:80},{n:"Refresher Jamaica",p:65},{n:"Horchatisimo",p:80},{n:"Refresher Jamaica",p:65},{n:"Matchata",p:95},{n:"Nube Tejate",p:75},{n:"Mango Pop",p:65},{n:"Berry Chill",p:70}]},
   {id:"crepisimas",nombre:"Crepisimas",emoji:"🫔",precio:null,tipo:"builder",prods:[]},
   {id:"extras",nombre:"Extras",emoji:"⭐",precio:null,tipo:"simple",prods:[{n:"Tapioca",lbl:"Tapioca",precio:20}]},
 ];
@@ -319,7 +326,7 @@ var PRECIOS_CAFE={"Americano":40,"Espresso":30,"Capuchino CC":50,"Latte":50,"Moc
 var CAPUCHINOS=["Capuchino Regular","Capuchino Cajeta","Capuchino Banana"];
 var SODAS_LIST=["Pink Lemonade","Manzana Verde","Mora Azul","Soda Fresa","Soda Mango","Sandia"];
 var CREPAS_FIJAS_D=[{n:"DLiss",lbl:"D'Liss"},{n:"Ok",lbl:"Ok!"},{n:"Pink",lbl:"Pink",op:["Lechera","Cajeta"],opLbl:"Untable",claves:{"Lechera":"Pink L","Cajeta":"Pink C"}},{n:"Cake",lbl:"Cake",op:["Fresa Natural","Durazno en Almibar"],opLbl:"Relleno",claves:{"Fresa Natural":"Cake Fresa","Durazno en Almibar":"Cake Durazno"}},{n:"Chocolatisima",lbl:"Chocolatísima"}];
-var CREPAS_FIJAS_S=[{n:"Pepperonisima",lbl:"Pepperonísima"},{n:"Hawaii",lbl:"Hawaii"},{n:"Crepizzima",lbl:"Crepizzíma"}];
+var CREPAS_FIJAS_S=[{n:"Pepperonisima",lbl:"Pepperonísima"},{n:"Hawaii",lbl:"Hawaii"},{n:"Crepizzima",lbl:"Crepizzíma"},{n:"Chorisima",lbl:"Chorisima"}];
 
 var CD_UNTABLE_MP={"Merm. Fresa":{id:"mermelada_fresa",c:35},
   "Merm. Zarzamora":{id:"mermelada_zarza",c:35},
@@ -3436,5 +3443,4 @@ export default function App(){
       seccion==="finanzas"?re(Finanzas,{ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;}),insumos:ins,tiendaId:tid,onGasto:function(g){addGasto(Object.assign({},g,{tienda:tid}));},onEditarGasto:editarGasto,onEliminarGasto:eliminarGasto}):null
     ),
     pinModal?re(ModalPin,{onAcceso:function(){setPinOk(true);setPinModal(false);setVista("finanzas");},onClose:function(){setPinModal(false);}}):null
-  );
-}
+  );}
