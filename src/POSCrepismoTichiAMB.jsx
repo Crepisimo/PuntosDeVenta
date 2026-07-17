@@ -1,4 +1,4 @@
-// build 4865765765354309809808 - julio 2026
+// build 4876435345 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -1382,7 +1382,7 @@ function POS(props){
       alertas.map(function(i){return re("div",{key:i.id,style:{fontSize:12,color:C.amber,marginBottom:2}},"Stock bajo: "+i.nombre+" ("+fmtC(i.stock||0,i.unidad)+")");})
     ):null,
     modalPinCorte?re(ModalPin,{onAcceso:function(){setVerCorte(true);setModalPinCorte(false);},onClose:function(){setModalPinCorte(false);}}):null,
-    modalProd?re(ModalProducto,{cat:modalProd.cat,prod:modalProd.prod,onAdd:agregarItem,onClose:function(){setModalProd(null);}}):null,
+    modalProd?re(ModalProducto,{cat:modalProd.cat,prod:modalProd.prod,tipo:modalProd.cat.tipo,precio:modalProd.cat.precio,onAdd:agregarItem,onClose:function(){setModalProd(null);}}):null,
     modalCrep?re(ModalCrepisima,{onAdd:agregarItem,onClose:function(){setModalCrep(false);}}):null,
     modalDesc?re(ModalDescuento,{onAdd:agregarItem,onClose:function(){setModalDesc(false);}}):null,
     modalPromo?re(ModalPromo,{promo:modalPromo,onAdd:agregarItems,onClose:function(){setModalPromo(null);}}):null,
