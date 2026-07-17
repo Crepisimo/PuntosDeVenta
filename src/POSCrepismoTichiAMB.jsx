@@ -1,4 +1,4 @@
-// build 4876435345 - julio 2026
+// build 4 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -199,7 +199,7 @@ var MENU=[
   {id:"cafe_cal",nombre:"Café Caliente",emoji:"☕",precio:null,tipo:"leche_sel",prods:[{n:"Americano",p:40,sin:true},{n:"Espresso",p:30,sin:true},{n:"Capuchino CC",p:50},{n:"Latte",p:50},{n:"Moca CC",p:50},{n:"Chocolate CC",p:50}]},
   {id:"latte_sin",nombre:"Latte Sin Azúcar",emoji:"🍵",precio:70,tipo:"simple",prods:["Latte Sin Azucar"]},
   {id:"crepas_d",nombre:"Crepas Dulces",emoji:"🥞",precio:85,tipo:"crepa_fija",prods:[{n:"DLiss",lbl:"D'Liss"},{n:"Ok",lbl:"Ok!"},{n:"Pink",lbl:"Pink",op:["Lechera","Cajeta"],opLbl:"Untable",claves:{"Lechera":"Pink L","Cajeta":"Pink C"}},{n:"Cake",lbl:"Cake",op:["Fresa Natural","Durazno en Almibar"],opLbl:"Relleno",claves:{"Fresa Natural":"Cake Fresa","Durazno en Almibar":"Cake Durazno"}},{n:"Chocolatisima",lbl:"Chocolatísima"}]},
-  {id:"crepas_s",nombre:"Crepas Saladas",emoji:"🥙",precio:85,tipo:"crepa_sal",prods:["Pepperonisima","Hawaii","Crepizzima"]},
+  {id:"crepas_s",nombre:"Crepas Saladas",emoji:"🥙",precio:85,tipo:"crepa_sal",prods:["Pepperonisima","Hawaii","Crepizzima","Chorisima"]},
   {id:"smoothies",nombre:"Smoothies",emoji:"🍓",precio:75,tipo:"simple",prods:["Fresa Platano","Mango Durazno"]},
   {id:"slush",nombre:"Slush",emoji:"🧊",precio:65,tipo:"simple",prods:["Slush Fresa","Slush Mango","Slush Pina"]},
   {id:"sodas",nombre:"Sodas Italianas",emoji:"🫧",precio:45,tipo:"simple",prods:["Pink Lemonade","Manzana Verde","Mora Azul","Soda Fresa","Soda Mango","Sandia","Soda Frutos Rojos"]},
