@@ -3341,7 +3341,7 @@ export default function App(){
             re("div",{style:{fontSize:20,color:C.dark}},"->")
           );
         }),
-        re("button",{onClick:function(){if(pinOk){setVista("finanzas");}else{setPinModal(true);}},style:{width:"100%",background:C.dark,border:"none",borderRadius:16,padding:20,cursor:"pointer",display:"flex",alignItems:"center",gap:14,boxShadow:"0 2px 8px rgba(0,0,0,.12)"}},
+        re("button",{onClick:function(){if(pinOk){setSeccion("finanzas");}else{setPinModal(true);}},style:{width:"100%",background:C.dark,border:"none",borderRadius:16,padding:20,cursor:"pointer",display:"flex",alignItems:"center",gap:14,boxShadow:"0 2px 8px rgba(0,0,0,.12)"}},
           re("div",{style:{fontSize:36}},"📊"),
           re("div",{style:{flex:1,textAlign:"left"}},
             re("div",{style:{fontSize:16,fontWeight:900,color:"#fff"}},"Finanzas Globales"),
@@ -3357,7 +3357,7 @@ export default function App(){
           re("div",{style:{fontSize:12,color:"#aaa",marginTop:2}},"Bluetooth - Impresora termica")
         )
       ),
-      pinModal?re(ModalPin,{onAcceso:function(){setPinOk(true);setPinModal(false);setVista("finanzas");},onClose:function(){setPinModal(false);}}):null
+      pinModal?re(ModalPin,{onAcceso:function(){setPinOk(true);setPinModal(false);setVista("tienda");setSeccion("finanzas");},onClose:function(){setPinModal(false);}}):null
     );
   }
 
@@ -3442,5 +3442,5 @@ export default function App(){
       }):null,
       seccion==="finanzas"?re(Finanzas,{ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;}),insumos:ins,tiendaId:tid,onGasto:function(g){addGasto(Object.assign({},g,{tienda:tid}));},onEditarGasto:editarGasto,onEliminarGasto:eliminarGasto}):null
     ),
-    pinModal?re(ModalPin,{onAcceso:function(){setPinOk(true);setPinModal(false);setVista("finanzas");},onClose:function(){setPinModal(false);}}):null
+    pinModal?re(ModalPin,{onAcceso:function(){setPinOk(true);setPinModal(false);setVista("tienda");setSeccion("finanzas");},onClose:function(){setPinModal(false);}}):null
   );}
