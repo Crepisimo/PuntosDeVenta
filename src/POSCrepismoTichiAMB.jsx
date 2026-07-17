@@ -1,4 +1,4 @@
-// build 42343 - julio 2026
+// build 43423874928374 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -3280,6 +3280,7 @@ export default function App(){
   var sSec=useState("pos");var seccion=sSec[0];var setSeccion=sSec[1];
   var sPinM=useState(false);var pinModal=sPinM[0];var setPinModal=sPinM[1];
   var sPinOk=useState(false);var pinOk=sPinOk[0];var setPinOk=sPinOk[1];
+  var sPending=useState("inventario");var pendingSeccion=sPending[0];var setPendingSeccion=sPending[1];
 
   // Save inventario to Supabase when it changes (debounced)
   // Stock saved via delta updates (multi-device safe)
@@ -3360,7 +3361,7 @@ export default function App(){
           re("div",{style:{fontSize:12,color:"#aaa",marginTop:2}},"Bluetooth - Impresora termica")
         )
       ),
-      pinModal?re(ModalPin,{onAcceso:function(){setPinOk(true);setPinModal(false);setVista("tienda");setSeccion("finanzas");},onClose:function(){setPinModal(false);}}):null
+      pinModal?re(ModalPin,{onAcceso:function(){setPinOk(true);setPinModal(false);setSeccion(pendingSeccion);},onClose:function(){setPinModal(false);}}):null
     );
   }
 
@@ -3373,8 +3374,7 @@ export default function App(){
 
   function irSec(id){
     if(id==="pos"||id==="pedidos"){setSeccion(id);return;}
-    
-    if(pinOk){setSeccion(id);}else{setPinModal(true);}
+    if(pinOk){setSeccion(id);}else{setPendingSeccion(id);setPinModal(true);}
   }
 
   return re("div",{style:{minHeight:"100vh",background:"#f0f2f7",fontFamily:"'Segoe UI',system-ui,sans-serif"}},
@@ -3445,5 +3445,5 @@ export default function App(){
       }):null,
       seccion==="finanzas"?re(Finanzas,{ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;}),insumos:ins,tiendaId:tid,onGasto:function(g){addGasto(Object.assign({},g,{tienda:tid}));},onEditarGasto:editarGasto,onEliminarGasto:eliminarGasto}):null
     ),
-    pinModal?re(ModalPin,{onAcceso:function(){setPinOk(true);setPinModal(false);setVista("tienda");setSeccion("finanzas");},onClose:function(){setPinModal(false);}}):null
+    pinModal?re(ModalPin,{onAcceso:function(){setPinOk(true);setPinModal(false);setSeccion(pendingSeccion);},onClose:function(){setPinModal(false);}}):null
   );}
