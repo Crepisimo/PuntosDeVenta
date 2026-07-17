@@ -1,4 +1,4 @@
-// build 412873192837918273981273 - julio 2026
+// build 4121278736482736482736192830192809384 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -1763,7 +1763,7 @@ function Finanzas(props){
   var s1=useState("dia");var periodo=s1[0];var setPeriodo=s1[1];
   var s2=useState("ventas_dia");var graficaActiva=s2[0];var setGraficaActiva=s2[1];
 
-  var tv=ventas.reduce(function(s,v){return s+v.total;},0);
+  var tv=ventas.filter(function(v){return v.estadoPago!=="reembolsado";}).reduce(function(s,v){return s+v.total;},0);
   var tg=gastos.filter(function(g){return g.desc!=="Comision Mercado Libre"&&g.tipo!=="transf_tarjeta";}).reduce(function(s,g){return s+g.monto;},0);
   var tc=ventas.filter(function(v){return v.estadoPago!=="reembolsado";}).reduce(function(s,v){return s+v.comisionClip;},0);
   var tDidiComision=ventas.reduce(function(s,v){return s+(v.comisionDidi||0);},0);
@@ -3354,18 +3354,6 @@ export default function App(){
     );
   }
 
-  if(vista==="finanzas"){
-    return re("div",{style:{minHeight:"100vh",background:"#f0f2f7",fontFamily:"'Segoe UI',system-ui,sans-serif"}},
-      re("div",{style:{background:C.dark,padding:"14px 14px 0",position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 8px rgba(0,0,0,.2)"}},
-        re("button",{onClick:function(){setVista("selector");},style:{background:"rgba(255,255,255,.2)",color:"#fff",border:"2px solid rgba(255,255,255,.5)",borderRadius:10,fontWeight:800,fontSize:14,cursor:"pointer",padding:"8px 16px",marginBottom:8,display:"block"}},"← Inicio"),
-        re("div",{style:{fontSize:18,fontWeight:900,color:"#fff",paddingBottom:12}})
-      ),
-      re("div",{style:{maxWidth:900,margin:"0 auto"}},
-        re(FinanzasGlobal,{ventas:ventas,gastos:gastos,insC:insC,insSA:insSA,insAmb:insAmb,insTichi:insTichi,onGasto:addGasto,onEditarGasto:editarGasto,onEliminarGasto:eliminarGasto})
-      )
-    );
-  }
-
   // Vista tienda
   var tid=tiendaId;
   var tInfo=TIENDAS.find(function(t){return t.id===tid;})||TIENDAS[0];
@@ -3375,7 +3363,7 @@ export default function App(){
 
   function irSec(id){
     if(id==="pos"||id==="pedidos"){setSeccion(id);return;}
-    if(id==="finanzas"){if(pinOk){setVista("finanzas");}else{setPinModal(true);}return;}
+    if(id==="finanzas"){if(pinOk){setSeccion("finanzas");}else{setPinModal(true);}return;}
     if(pinOk){setSeccion(id);}else{setPinModal(true);}
   }
 
@@ -3412,7 +3400,7 @@ export default function App(){
                   });
                   return newIns;
                 });
-              }}):re(Pedidos,{ventas:ventas,tiendaId:tid,
+              }}):re(Pedidos,{ventas:ventas.filter(function(v){return v.tienda===tid;}),tiendaId:tid,
           onActualizarPago:function(timestamps,tipo,montoReal,comision){setVentas(function(p){return p.map(function(v){return timestamps.includes(v.timestamp)?Object.assign({},v,{estadoPago:"pagado",netoRecibido:montoReal?(montoReal/Math.max(1,timestamps.length)):v.netoRecibido,comisionDidi:comision?(comision/Math.max(1,timestamps.length)):v.comisionDidi}):v;});});updateEstadoPago(timestamps);},
           onReembolso:function(venta){
             // Mark as reembolsado
@@ -3444,7 +3432,8 @@ export default function App(){
         tiendaId:tid,
         insumosOtra:insOtra(tid),
         setInsumosOtra:setInsOtra(tid),
-      }):null
+      }):null,
+      seccion==="finanzas"?re(Finanzas,{ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;}),insumos:ins,tiendaId:tid,onGasto:function(g){addGasto(Object.assign({},g,{tienda:tid}));},onEditarGasto:editarGasto,onEliminarGasto:eliminarGasto}):null
     ),
     pinModal?re(ModalPin,{onAcceso:function(){setPinOk(true);setPinModal(false);setVista("finanzas");},onClose:function(){setPinModal(false);}}):null
   );
