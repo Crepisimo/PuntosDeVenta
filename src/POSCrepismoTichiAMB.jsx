@@ -1,4 +1,4 @@
-// build 423894729384790436592346589327465982374659823764592837029834091834 - julio 2026
+// build 4298376347523764948593847938475 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -921,7 +921,7 @@ function ModalCobro(props){
       ):null,
     re("div",{style:{display:"flex",gap:10}},
       re("button",{onClick:onClose,style:BS("#f0f0f0","#666")},"Cancelar"),
-      re("button",{onClick:confirmar,disabled:!v.metodo||(v.metodo==="efectivo"&&!efOk),style:BS((v.metodo&&(v.metodo!=="efectivo"||efOk))?C.green:"#ccc","#fff",2)},v.metodo==="didi"?"Registrar (por pagar)":"Confirmar venta")
+      re("button",{onClick:confirmar,disabled:props.procesando||!v.metodo||(v.metodo==="efectivo"&&!efOk),style:BS((v.metodo&&(v.metodo!=="efectivo"||efOk))?C.green:"#ccc","#fff",2)},v.metodo==="didi"?"Registrar (por pagar)":"Confirmar venta")
     )
   ));
 }
@@ -1180,6 +1180,7 @@ function ModalPinReembolso(props){
 
 function POS(props){
   var tiendaId=props.tiendaId,insumos=props.insumos,setInsumos=props.setInsumos,onVenta=props.onVenta,onGasto=props.onGasto,ventas=props.ventas,gastos=props.gastos;
+  var sProcesando=useState(false);var procesando=sProcesando[0];var setProcesando=sProcesando[1];
   var s1=useState(null);var catActiva=s1[0];var setCat=s1[1];
   var s2=useState(false);var verPromos=s2[0];var setVerPromos=s2[1];
   var s3=useState([]);var orden=s3[0];var setOrden=s3[1];
@@ -1216,7 +1217,7 @@ function POS(props){
     }
     setModalProd({cat:cat,prod:prod});
   }
-  async function confirmarCobro(info){
+  async function confirmarCobro(info){if(procesando)return;setProcesando(true);
     var deltas={};
     function addDelta(id,amt){deltas[id]=(deltas[id]||0)-amt;}
     orden.forEach(function(item){
@@ -1238,7 +1239,7 @@ function POS(props){
     var _venta=Object.assign({},info,{tienda:tiendaId,total:totalDisplay,descuento:descuentoTotal,items:orden,timestamp:new Date().toISOString()});
     onVenta(_venta);
     imprimirTicket(_venta,tiendaId);
-    setOrden([]);setModalCobro(false);setCat(null);setVerPromos(false);
+    setOrden([]);setModalCobro(false);setCat(null);setVerPromos(false);setProcesando(false);
     setExito(true);setTimeout(function(){setExito(false);},2000);
   }
   function confirmarGasto(gasto){
@@ -1385,7 +1386,7 @@ function POS(props){
     modalCrep?re(ModalCrepisima,{onAdd:agregarItem,onClose:function(){setModalCrep(false);}}):null,
     modalDesc?re(ModalDescuento,{onAdd:agregarItem,onClose:function(){setModalDesc(false);}}):null,
     modalPromo?re(ModalPromo,{promo:modalPromo,onAdd:agregarItems,onClose:function(){setModalPromo(null);}}):null,
-    modalCobro?re(ModalCobro,{total:totalDisplay,onConfirmar:confirmarCobro,onClose:function(){setModalCobro(false);}}):null,
+    modalCobro?re(ModalCobro,{total:totalDisplay,onConfirmar:confirmarCobro,onClose:function(){setModalCobro(false);},procesando:procesando}):null,
     modalGasto?re(ModalGasto,{insumos:insumos,onGuardar:confirmarGasto,onClose:function(){setModalGasto(false);}}):null,
     modalEmpleado?re(ModalEmpleado,{onAdd:function(item){agregarItem(item);},onClose:function(){setModalEmpleado(false);}}):null
   );
@@ -2310,6 +2311,7 @@ function POSAmburger(props){
   var tiendaId=props.tiendaId,insumos=props.insumos,setInsumos=props.setInsumos;
   var onVenta=props.onVenta,onGasto=props.onGasto,ventas=props.ventas,gastos=props.gastos;
 
+  var sProcesando=useState(false);var procesando=sProcesando[0];var setProcesando=sProcesando[1];
   var s1=useState(null);var catActiva=s1[0];var setCat=s1[1];
   var s2=useState(false);var verPromos=s2[0];var setVerPromos=s2[1];
   var s3=useState([]);var orden=s3[0];var setOrden=s3[1];
@@ -2344,7 +2346,7 @@ function POSAmburger(props){
     setProdBase({cat:cat,prod:prod});setModalExtras(true);
   }
 
-  async function confirmarCobro(info){
+  async function confirmarCobro(info){if(procesando)return;setProcesando(true);
     var deltas={};
     function addDelta(id,amt){deltas[id]=(deltas[id]||0)-amt;}
     var hayParaLlevar=orden.some(function(item){return item.paraLlevar==="Para llevar";});
@@ -2357,7 +2359,7 @@ function POSAmburger(props){
     await await updateStockDelta(tiendaId,Object.keys(deltas).map(function(id){return {id:id,delta:deltas[id]};}));
     setInsumos(function(prev){return prev.map(function(ins){return deltas[ins.id]!==undefined?Object.assign({},ins,{stock:Math.max(0,(ins.stock||0)+deltas[ins.id])}):ins;});});
     var _va=Object.assign({},info,{tienda:tiendaId,total:totalDisplay,items:orden,timestamp:new Date().toISOString()});onVenta(_va);window.imprimirTicket&&window.imprimirTicket(_va,tiendaId);
-    setOrden([]);setModalCobro(false);setCat(null);setVerPromos(false);
+    setOrden([]);setModalCobro(false);setCat(null);setVerPromos(false);setProcesando(false);
     setExito(true);setTimeout(function(){setExito(false);},2000);
   }
 
@@ -2506,7 +2508,7 @@ function POSAmburger(props){
     ):null,
     modalPinCorte?re(ModalPin,{onAcceso:function(){setVerCorte(true);setModalPinCorte(false);},onClose:function(){setModalPinCorte(false);}}):null,
     modalPromo?re(ModalPromoAmb,{promo:modalPromo,onAdd:agregarItems,onClose:function(){setModalPromo(null);}}):null,
-    modalCobro?re(ModalCobro,{total:totalDisplay,onConfirmar:confirmarCobro,onClose:function(){setModalCobro(false);}}):null,
+    modalCobro?re(ModalCobro,{total:totalDisplay,onConfirmar:confirmarCobro,onClose:function(){setModalCobro(false);},procesando:procesando}):null,
     modalGasto?re(ModalGasto,{insumos:insumos,onGuardar:confirmarGasto,onClose:function(){setModalGasto(false);}}):null,
     modalDesc?re(ModalDescuento,{onAdd:function(item){agregarItem(item);},onClose:function(){setModalDesc(false);}}):null,
 
@@ -2571,7 +2573,7 @@ function POSTichi(props){
     agregarItem({nombre:prod.nombre,precio:prod.precio,recetaKey:prod.id,paraLlevar:"",usaVegetal:false});
   }
 
-  async function confirmarCobro(info){
+  async function confirmarCobro(info){if(procesando)return;setProcesando(true);
     var envioItems=orden.filter(function(i){return i.esEnvio;});
     var totalEnvio=envioItems.reduce(function(s,i){return s+i.precio;},0);
     var deltas={};
@@ -2590,7 +2592,7 @@ function POSTichi(props){
     onVenta(ventaObjT);
 
     window.imprimirTicket&&window.imprimirTicket(ventaObjT,tiendaId);
-    setOrden([]);setModalCobro(false);
+    setOrden([]);setModalCobro(false);setProcesando(false);
     setExito(true);setTimeout(function(){setExito(false);},2000);
   }
 
@@ -2776,6 +2778,7 @@ function POSTichi(props){
 }
 function PedidosTichi(props){
   var ventas=props.ventas,tiendaId=props.tiendaId,onActualizarPago=props.onActualizarPago,onReembolso=props.onReembolso;
+  var sProcesando=useState(false);var procesando=sProcesando[0];var setProcesando=sProcesando[1];
   var s1=useState(null);var sel=s1[0];var setSel=s1[1];
   var s2=useState(false);var modalPinR=s2[0];var setModalPinR=s2[1];
   var s3=useState(null);var ventaR=s3[0];var setVentaR=s3[1];
