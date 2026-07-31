@@ -1,4 +1,4 @@
-// build 438729863293465827346598237465 - julio 2026
+// build 418482734687163847168273618726381762319048203989186323 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -2356,7 +2356,7 @@ function POSAmburger(props){
       rec.forEach(function(r){addDelta(r.id,r.c);});
     });
     if(hayParaLlevar)addDelta("amb_bolsa_papel",1);
-    await await updateStockDelta(tiendaId,Object.keys(deltas).map(function(id){return {id:id,delta:deltas[id]};}));
+    await updateStockDelta(tiendaId,Object.keys(deltas).map(function(id){return {id:id,delta:deltas[id]};}));
     setInsumos(function(prev){return prev.map(function(ins){return deltas[ins.id]!==undefined?Object.assign({},ins,{stock:Math.max(0,(ins.stock||0)+deltas[ins.id])}):ins;});});
     var _va=Object.assign({},info,{tienda:tiendaId,total:totalDisplay,items:orden,timestamp:new Date().toISOString()});onVenta(_va);window.imprimirTicket&&window.imprimirTicket(_va,tiendaId);
     setOrden([]);setModalCobro(false);setCat(null);setVerPromos(false);setProcesando(false);
@@ -2583,7 +2583,7 @@ function POSTichi(props){
       var receta=R_TICHI_PROD[item.recetaKey]||[];
       receta.forEach(function(r){addDelta(r.id,r.c);});
     });
-    await await updateStockDelta(tiendaId,Object.keys(deltas).map(function(id){return {id:id,delta:deltas[id]};}));
+    await updateStockDelta(tiendaId,Object.keys(deltas).map(function(id){return {id:id,delta:deltas[id]};}));
     setInsumos(function(prev){return prev.map(function(ins){return deltas[ins.id]!==undefined?Object.assign({},ins,{stock:Math.max(0,(ins.stock||0)+deltas[ins.id])}):ins;});});
     if(totalEnvio>0){
       onGasto({seccion:"caja",tipo:"operativo",monto:totalEnvio,desc:"Costo envio",tienda:tiendaId,timestamp:new Date().toISOString()});
@@ -2636,7 +2636,7 @@ function POSTichi(props){
   }
 
   function ModalCobroTichi(props2){
-    var total2=props2.total,onConf=props2.onConfirmar,onCl=props2.onClose;
+    var total2=props2.total,onConf=props2.onConfirmar,onCl=props2.onClose,procesando2=props2.procesando;
     var ms=useState({metodo:"",efectivo:"",montoML:"",terminalClip:""});var mv=ms[0];var mset=ms[1];
     function mupdL(k,val){mset(function(p){var n={};for(var x in p)n[x]=p[x];n[k]=val;return n;});}
     var clip2=total2*CLIP_RATE,neto2=total2-clip2;
@@ -2683,7 +2683,7 @@ function POSTichi(props){
       ):null,
       re("div",{style:{display:"flex",gap:10,marginTop:4}},
         re("button",{onClick:onCl,style:BS("#f0f0f0","#666")},"Cancelar"),
-        re("button",{onClick:conf,disabled:!mv.metodo||(mv.metodo==="efectivo"&&!efOk)||(mv.metodo==="mercadolibre"&&montoMLNum<=0),style:BS(mv.metodo?TC.dark:"#ccc","#fff",2)},mv.metodo==="mercadolibre"?"Registrar (por pagar)":"Confirmar venta")
+        re("button",{onClick:conf,disabled:procesando2||!mv.metodo||(mv.metodo==="efectivo"&&!efOk)||(mv.metodo==="mercadolibre"&&montoMLNum<=0),style:BS(mv.metodo?TC.dark:"#ccc","#fff",2)},mv.metodo==="mercadolibre"?"Registrar (por pagar)":"Confirmar venta")
       )
     ));
   }
@@ -2770,8 +2770,7 @@ function POSTichi(props){
       )
     )):null,
     modalPinCorte?re(ModalPin,{onAcceso:function(){setVerCorte(true);setModalPinCorte(false);},onClose:function(){setModalPinCorte(false);}}):null,
-    modalPinCorte?re(ModalPin,{onAcceso:function(){setVerCorte(true);setModalPinCorte(false);},onClose:function(){setModalPinCorte(false);}}):null,
-    modalCobro?re(ModalCobroTichi,{total:totalDisplay,onConfirmar:confirmarCobro,onClose:function(){setModalCobro(false);}}):null,
+    modalCobro?re(ModalCobroTichi,{total:totalDisplay,onConfirmar:confirmarCobro,onClose:function(){setModalCobro(false);},procesando:procesando}):null,
     modalGasto?re(ModalGasto,{insumos:insumos,onGuardar:confirmarGasto,onClose:function(){setModalGasto(false);}}):null,
     modalDesc?re(ModalDescuento,{onAdd:agregarItem,onClose:function(){setModalDesc(false);}}):null
   );
@@ -3197,17 +3196,32 @@ async function applyStockDeltas(tienda,deltas){
 
 async function updateStockDelta(tienda,deltas){
   // deltas: [{id, delta}] - positive=add, negative=subtract
-  try{
-    for(var i=0;i<deltas.length;i++){
-      var d=deltas[i];
-      if(!d.id||d.delta===0)continue;
-      await fetch(SB_URL+"/rest/v1/rpc/update_stock",{
+  for(var i=0;i<deltas.length;i++){
+    var d=deltas[i];
+    if(!d.id||d.delta===0)continue;
+    try{
+      // Intentar RPC (multi-dispositivo seguro)
+      var r=await fetch(SB_URL+"/rest/v1/rpc/update_stock",{
         method:"POST",
         headers:{"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY,"Content-Type":"application/json"},
         body:JSON.stringify({p_tienda:tienda,p_insumo_id:d.id,p_delta:d.delta})
       });
-    }
-  }catch(e){console.error("updateStockDelta:",e);}
+      if(!r.ok){
+        // RPC falló - usar upsert directo como respaldo
+        var cur=await fetch(SB_URL+"/rest/v1/inventario?tienda=eq."+tienda+"&insumo_id=eq."+d.id,{
+          headers:{"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY}
+        });
+        var rows=cur.ok?await cur.json():[];
+        var stockActual=rows.length>0?(rows[0].stock||0):0;
+        var nuevoStock=Math.max(0,stockActual+d.delta);
+        await fetch(SB_URL+"/rest/v1/inventario",{
+          method:"POST",
+          headers:{"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY,"Content-Type":"application/json","Prefer":"resolution=merge-duplicates,return=minimal"},
+          body:JSON.stringify({tienda:tienda,insumo_id:d.id,stock:nuevoStock})
+        });
+      }
+    }catch(e){console.error("updateStockDelta error:",d.id,e.message);}
+  }
 }
 
 async function updateEstadoPago(timestamps,status){
