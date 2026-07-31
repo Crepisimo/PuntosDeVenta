@@ -1,4 +1,4 @@
-// build 418482734687163847168273618726381762319048203989186323 - julio 2026
+// build 4 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -2547,6 +2547,7 @@ function POSTichi(props){
   var tiendaId=props.tiendaId,insumos=props.insumos,setInsumos=props.setInsumos;
   var onVenta=props.onVenta,onGasto=props.onGasto,ventas=props.ventas,gastos=props.gastos;
 
+  var sProcesando=useState(false);var procesando=sProcesando[0];var setProcesando=sProcesando[1];
   var s1=useState([]);var orden=s1[0];var setOrden=s1[1];
   var s2=useState(false);var modalCobro=s2[0];var setModalCobro=s2[1];
   var s3=useState(false);var modalGasto=s3[0];var setModalGasto=s3[1];
@@ -2777,7 +2778,6 @@ function POSTichi(props){
 }
 function PedidosTichi(props){
   var ventas=props.ventas,tiendaId=props.tiendaId,onActualizarPago=props.onActualizarPago,onReembolso=props.onReembolso;
-  var sProcesando=useState(false);var procesando=sProcesando[0];var setProcesando=sProcesando[1];
   var s1=useState(null);var sel=s1[0];var setSel=s1[1];
   var s2=useState(false);var modalPinR=s2[0];var setModalPinR=s2[1];
   var s3=useState(null);var ventaR=s3[0];var setVentaR=s3[1];
