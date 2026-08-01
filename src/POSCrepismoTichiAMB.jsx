@@ -1,4 +1,4 @@
-// build 4034872938650726583947659837465980283409823 - julio 2026
+// build 4987 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -3163,7 +3163,14 @@ var SB_KEY="sb_publishable_LJZo3cGXe7hhzajWSogATw_A8vGfRO7";
 function sbFetch(path,method,body){
   var opts={method:method||"GET",headers:{"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY,"Content-Type":"application/json","Prefer":method==="POST"?"return=minimal":"return=representation"}};
   if(body)opts.body=JSON.stringify(body);
-  return fetch(SB_URL+"/rest/v1/"+path,opts).then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t);});if(r.status===204)return null;return r.json();});
+  return fetch(SB_URL+"/rest/v1/"+path,opts).then(function(r){
+    if(!r.ok)return r.text().then(function(t){throw new Error(t);});
+    if(r.status===204||r.headers.get("content-length")==="0")return null;
+    return r.text().then(function(t){
+      if(!t||t.trim()==="")return null;
+      try{return JSON.parse(t);}catch(e){return null;}
+    });
+  });
 }
 
 function sbGet(table,params){return sbFetch(table+(params?"?"+params:""),"GET");}
