@@ -1,4 +1,4 @@
-// build 4987 - julio 2026
+// build 48037408374928374 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -1225,6 +1225,10 @@ function POS(props){
       var recKey=item.esEmpleado?(item.recetaBase||""):item.recetaKey;
       var rec=R[recKey]||[];
       rec.forEach(function(r){if(item.esEmpleado&&EMPAQUE_IDS.indexOf(r.id)>=0)return;addDelta(r.id,r.c);});
+      if(item.usaVegetal&&deltas["leche_deslac"]){
+        deltas["leche_vegetal"]=(deltas["leche_vegetal"]||0)+deltas["leche_deslac"];
+        delete deltas["leche_deslac"];
+      }
       if(recKey==="__crepisima__"){
         var uts=item.crepUntables||[];var factor=uts.length>=2?0.5:1;
         uts.forEach(function(u){var mp=CD_UNTABLE_MP[u];if(mp)addDelta(mp.id,mp.c*factor);});
