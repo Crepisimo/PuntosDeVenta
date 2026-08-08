@@ -1,4 +1,4 @@
-// build 48037408374928374 - julio 2026
+// build 401872598304956239487659283 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -3480,6 +3480,9 @@ export default function App(){
         onTransferir:function(insId,cantFrom,cantTo,otraTienda){
           updateStockDelta(tid,[{id:insId,delta:-cantFrom}]);
           updateStockDelta(otraTienda,[{id:insId,delta:cantTo}]);
+          // Actualizar estado local de ambas tiendas
+          setIns(function(prev){return prev.map(function(i){return i.id===insId?Object.assign({},i,{stock:Math.max(0,(i.stock||0)-cantFrom)}):i;});});
+          setInsFor(otraTienda)(function(prev){return prev.map(function(i){return i.id===insId?Object.assign({},i,{stock:(i.stock||0)+cantTo}):i;});});
         },
         onActualizarPago:function(v,estado){
           setVentas(function(p){return p.map(function(x){return x===v?Object.assign({},x,{estadoPago:estado}):x;});});
