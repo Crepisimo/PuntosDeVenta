@@ -1,4 +1,4 @@
-// build 401872598304956239487659283 - julio 2026
+// build 47938428937498273498263946278346152376152382537452 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -3477,10 +3477,27 @@ export default function App(){
         ventas:ventas.filter(function(v){return v.tienda===tid;}),
         gastos:gastos.filter(function(g){return g.tienda===tid;}),
         onVenta:addVenta,
-        onTransferir:function(insId,cantFrom,cantTo,otraTienda){
+        onTransferir:function(t){
+          // t puede ser {insumoId,cantidad,dir} (de ModalTransferencia) o (insId,cantFrom,cantTo,otraTienda)
+          var insId, cantFrom, cantTo, otraTienda;
+          if(typeof t === "object" && t.insumoId){
+            insId = t.insumoId;
+            var cant = t.cantidad||0;
+            otraTienda = tid==="centro"?"sanantonio":tid==="sanantonio"?"centro":tid==="amburger"?"centro":"centro";
+            if(t.dir==="salida"){ cantFrom=cant; cantTo=cant; }
+            else { cantFrom=0; cantTo=0; otraTienda=tid; insId=t.insumoId;
+              // entrada: quitar de otraTienda y sumar aqui
+              updateStockDelta(otraTienda,[{id:insId,delta:-cant}]);
+              updateStockDelta(tid,[{id:insId,delta:cant}]);
+              setInsFor(otraTienda)(function(prev){return prev.map(function(i){return i.id===insId?Object.assign({},i,{stock:Math.max(0,(i.stock||0)-cant)}):i;});});
+              setIns(function(prev){return prev.map(function(i){return i.id===insId?Object.assign({},i,{stock:(i.stock||0)+cant}):i;});});
+              return;
+            }
+          } else {
+            insId=t; cantFrom=arguments[1]; cantTo=arguments[2]; otraTienda=arguments[3];
+          }
           updateStockDelta(tid,[{id:insId,delta:-cantFrom}]);
           updateStockDelta(otraTienda,[{id:insId,delta:cantTo}]);
-          // Actualizar estado local de ambas tiendas
           setIns(function(prev){return prev.map(function(i){return i.id===insId?Object.assign({},i,{stock:Math.max(0,(i.stock||0)-cantFrom)}):i;});});
           setInsFor(otraTienda)(function(prev){return prev.map(function(i){return i.id===insId?Object.assign({},i,{stock:(i.stock||0)+cantTo}):i;});});
         },
