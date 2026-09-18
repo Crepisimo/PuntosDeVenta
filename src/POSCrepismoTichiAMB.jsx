@@ -1,4 +1,4 @@
-// build 47938428937498273498263946278346152376152382537452 - julio 2026
+// build 41097849028734243 - julio 2026
 import React, { useState } from "react";
 
 var CLIP_RATE = 0.04176;
@@ -119,7 +119,9 @@ var INSUMOS_INIT=[
   {id:"coulis_tuna",nombre:"Coulis de tuna roja",unidad:"g",stock:0,minimo:200},
   {id:"jar_jamaica",nombre:"Jarabe de jamaica",unidad:"ml",stock:0,minimo:500},
   {id:"quesillo",nombre:"Quesillo",unidad:"porcion",stock:0,minimo:5},
-  {id:"chorizo",nombre:"Chorizo",unidad:"porcion",stock:0,minimo:5}];
+  {id:"chorizo",nombre:"Chorizo",unidad:"porcion",stock:0,minimo:5},
+  {id:"jar_maracuya",nombre:"Jarabe de maracuya",unidad:"ml",stock:0,minimo:500},
+  {id:"pay_queso",nombre:"Pay de queso",unidad:"g",stock:0,minimo:500}];
 
 var MB=[
   {id:"harina",c:760/21},{id:"azucar_masa",c:240/21},
@@ -128,6 +130,12 @@ var MB=[
 ];
 
 var R={
+  "Crepay de Queso Lechera":MB.concat([{id:"philadelphia",c:1},{id:"fresa",c:60},{id:"pay_queso",c:90},{id:"lechera",c:1},{id:"caja_crepa",c:1},{id:"papel_alim",c:1}]),
+  "Frappay de Queso":[{id:"pay_queso",c:90},{id:"lechera",c:30},{id:"base_neutra",c:30},{id:"philadelphia",c:1},{id:"leche_deslac",c:150},{id:"hielo",c:0.3},{id:"crema_batida",c:1},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
+  "Nube Tejate":[{id:"tejate",c:90},{id:"base_neutra",c:60},{id:"hielo",c:0.33},{id:"leche_deslac",c:180},{id:"nibs_cacao",c:5},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
+  "Lataro":[{id:"tapioca",c:1},{id:"jar_taro",c:39.6},{id:"leche_deslac",c:270},{id:"hielo",c:0.21},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
+  "Soda Maracuya":[{id:"jar_maracuya",c:49.5},{id:"perlas_mango",c:30},{id:"hielo",c:0.18},{id:"agua_mineral",c:270},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
+  "Crepay de Queso":MB.concat([{id:"philadelphia",c:1},{id:"fresa",c:60},{id:"pay_queso",c:90},{id:"nutella",c:1},{id:"caja_crepa",c:1},{id:"papel_alim",c:1}]),
   "Horchatisimo":[{id:"leche_deslac",c:180.0},{id:"base_horchata",c:60.0},{id:"hielo",c:0.33},{id:"coulis_tuna",c:90.0},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
   "Refresher Jamaica":[{id:"agua_mineral",c:300.0},{id:"jar_jamaica",c:49.5},{id:"perlas_fresa",c:30.0},{id:"fresa",c:60.0},{id:"hielo",c:0.18},{id:"vaso_18oz",c:1},{id:"tapa_domo",c:1},{id:"popote",c:1}],
   "Chorisima":MB.concat([{id:"quesillo",c:1},{id:"philadelphia",c:35},{id:"chorizo",c:1},{id:"caja_crepa",c:1},{id:"papel_alim",c:1}]),
@@ -197,12 +205,12 @@ var MENU=[
   {id:"cafe_frio",nombre:"Café Frío",emoji:"🧋",precio:65,tipo:"leche",prods:["3 Leches","Caramelo","Avellana","Moca CF","Latte Frio"]},
   {id:"cafe_cal",nombre:"Café Caliente",emoji:"☕",precio:null,tipo:"leche_sel",prods:[{n:"Americano",p:40,sin:true},{n:"Espresso",p:30,sin:true},{n:"Capuchino CC",p:50},{n:"Latte",p:50},{n:"Moca CC",p:50},{n:"Chocolate CC",p:50}]},
   {id:"latte_sin",nombre:"Latte Sin Azúcar",emoji:"🍵",precio:70,tipo:"simple",prods:["Latte Sin Azucar"]},
-  {id:"crepas_d",nombre:"Crepas Dulces",emoji:"🥞",precio:85,tipo:"crepa_fija",prods:[{n:"DLiss",lbl:"D'Liss"},{n:"Ok",lbl:"Ok!"},{n:"Pink",lbl:"Pink",op:["Lechera","Cajeta"],opLbl:"Untable",claves:{"Lechera":"Pink L","Cajeta":"Pink C"}},{n:"Cake",lbl:"Cake",op:["Fresa Natural","Durazno en Almibar"],opLbl:"Relleno",claves:{"Fresa Natural":"Cake Fresa","Durazno en Almibar":"Cake Durazno"}},{n:"Chocolatisima",lbl:"Chocolatísima"}]},
+  {id:"crepas_d",nombre:"Crepas Dulces",emoji:"🥞",precio:85,tipo:"crepa_fija",prods:[{n:"DLiss",lbl:"D'Liss"},{n:"Ok",lbl:"Ok!"},{n:"Pink",lbl:"Pink",op:["Lechera","Cajeta"],opLbl:"Untable",claves:{"Lechera":"Pink L","Cajeta":"Pink C"}},{n:"Cake",lbl:"Cake",op:["Fresa Natural","Durazno en Almibar"],opLbl:"Relleno",claves:{"Fresa Natural":"Cake Fresa","Durazno en Almibar":"Cake Durazno"}},{n:"Chocolatisima",lbl:"Chocolatísima"},{n:"Crepay de Queso",lbl:"Crepay de Queso",p:90}]},
   {id:"crepas_s",nombre:"Crepas Saladas",emoji:"🥙",precio:85,tipo:"crepa_sal",prods:["Pepperonisima","Hawaii","Crepizzima","Chorisima"]},
   {id:"smoothies",nombre:"Smoothies",emoji:"🍓",precio:75,tipo:"simple",prods:["Fresa Platano","Mango Durazno"]},
   {id:"slush",nombre:"Slush",emoji:"🧊",precio:65,tipo:"simple",prods:["Slush Fresa","Slush Mango","Slush Pina"]},
   {id:"sodas",nombre:"Sodas Italianas",emoji:"🫧",precio:45,tipo:"simple",prods:["Pink Lemonade","Manzana Verde","Mora Azul","Soda Fresa","Soda Mango","Sandia","Soda Frutos Rojos"]},
-  {id:"temporada",nombre:"Beb. Temporada",emoji:"✨",precio:null,tipo:"variable",prods:[{n:"Horchatisimo",p:80},{n:"Refresher Jamaica",p:65},{n:"Horchatisimo",p:80},{n:"Refresher Jamaica",p:65},{n:"Matchata",p:95},{n:"Nube Tejate",p:75},{n:"Mango Pop",p:65},{n:"Berry Chill",p:70}]},
+  {id:"temporada",nombre:"Beb. Temporada",emoji:"✨",precio:null,tipo:"variable",prods:[{n:"Frappay de Queso",p:90},{n:"Nube Tejate",p:75},{n:"Lataro",p:75},{n:"Soda Maracuya",p:45},{n:"Horchatisimo",p:80},{n:"Refresher Jamaica",p:65},{n:"Horchatisimo",p:80},{n:"Refresher Jamaica",p:65},{n:"Matchata",p:95},{n:"Nube Tejate",p:75},{n:"Mango Pop",p:65},{n:"Berry Chill",p:70}]},
   {id:"crepisimas",nombre:"Crepisimas",emoji:"🫔",precio:null,tipo:"builder",prods:[]},
   {id:"extras",nombre:"Extras",emoji:"⭐",precio:null,tipo:"simple",prods:[{n:"Tapioca",lbl:"Tapioca",precio:20}]},
 ];
@@ -324,7 +332,7 @@ var CAFES_CAL=["Americano","Espresso","Capuchino CC","Latte","Moca CC","Chocolat
 var PRECIOS_CAFE={"Americano":40,"Espresso":30,"Capuchino CC":50,"Latte":50,"Moca CC":50,"Chocolate CC":50};
 var CAPUCHINOS=["Capuchino Regular","Capuchino Cajeta","Capuchino Banana"];
 var SODAS_LIST=["Pink Lemonade","Manzana Verde","Mora Azul","Soda Fresa","Soda Mango","Sandia"];
-var CREPAS_FIJAS_D=[{n:"DLiss",lbl:"D'Liss"},{n:"Ok",lbl:"Ok!"},{n:"Pink",lbl:"Pink",op:["Lechera","Cajeta"],opLbl:"Untable",claves:{"Lechera":"Pink L","Cajeta":"Pink C"}},{n:"Cake",lbl:"Cake",op:["Fresa Natural","Durazno en Almibar"],opLbl:"Relleno",claves:{"Fresa Natural":"Cake Fresa","Durazno en Almibar":"Cake Durazno"}},{n:"Chocolatisima",lbl:"Chocolatísima"}];
+var CREPAS_FIJAS_D=[{n:"DLiss",lbl:"D'Liss"},{n:"Ok",lbl:"Ok!"},{n:"Pink",lbl:"Pink",op:["Lechera","Cajeta"],opLbl:"Untable",claves:{"Lechera":"Pink L","Cajeta":"Pink C"}},{n:"Cake",lbl:"Cake",op:["Fresa Natural","Durazno en Almibar"],opLbl:"Relleno",claves:{"Fresa Natural":"Cake Fresa","Durazno en Almibar":"Cake Durazno"}},{n:"Chocolatisima",lbl:"Chocolatísima"},{n:"Crepay de Queso",lbl:"Crepay de Queso",claves:{"Nutella":"Crepay de Queso","Lechera":"Crepay de Queso Lechera"}},{n:"Crepay de Queso",lbl:"Crepay de Queso"}];
 var CREPAS_FIJAS_S=[{n:"Pepperonisima",lbl:"Pepperonísima"},{n:"Hawaii",lbl:"Hawaii"},{n:"Crepizzima",lbl:"Crepizzíma"},{n:"Chorisima",lbl:"Chorisima"}];
 
 var CD_UNTABLE_MP={"Merm. Fresa":{id:"mermelada_fresa",c:35},
