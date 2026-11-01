@@ -27,9 +27,27 @@ async function authRequest(path,data){
 }
 export async function signIn(codigo,clave){
   const email=loginEmail(codigo);
-  if(!clave || clave.length<8)throw new Error('La clave debe tener al menos 8 caracteres.');
-  const s=await authRequest('token?grant_type=password',{email,password:clave});
-  session={...s,expires_at:Math.floor(Date.now()/1000)+s.expires_in};
+  let s;
+  if (codigo.trim().toLowerCase()!=='admin01' && /^[0-9]{4}$/.test(clave)) {
+    // El PIN se valida en el servidor. No se publica en JS ni en el navegador.
+    let response;
+    try {
+      response = await fetch('/api/pin-login', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        cache:'no-store',
+        body: JSON.stringify({codigo:codigo.trim().toLowerCase(),pin:clave})
+      });
+    } catch (_) {throw new Error('No se pudo conectar al servicio de acceso por PIN.');}
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(result.error||'Código o PIN incorrectos.');
+    s=result;
+  } else {
+    if(!clave || clave.length<8)throw new Error('El PIN debe tener 4 números; el administrador usa contraseña completa.');
+    s=await authRequest('token?grant_type=password',{email,password:clave});
+  }
+  if(!s?.access_token||!s?.refresh_token)throw new Error('Supabase no devolvió una sesión válida.');
+  session={...s,expires_at:Math.floor(Date.now()/1000)+Number(s.expires_in||3600)};
   sessionStorage.setItem(STORE,JSON.stringify(session));
   return session;
 }
@@ -56,7 +74,7 @@ export async function apiFetch(path,method='GET',body,extraHeaders={}){
 export const rpc=(fn,params)=>apiFetch(`rpc/${fn}`,'POST',params);
 export function AuthGate({children,admin=false}){
   const [profile,setProfile]=useState(null),[ready,setReady]=useState(false),[error,setError]=useState('');
-  const [codigo,setCodigo]=useState(''),[clave,setClave]=useState(''),[busy,setBusy]=useState(false);
+  const [codigo,setCodigo]=useState(''),[clave,setClave]=useState(''),[busy,setBusy]=useState(false),[usarClaveAnterior,setUsarClaveAnterior]=useState(false);
   async function check(){
     if(!session?.access_token){setReady(true);return;}
     try{
@@ -74,13 +92,16 @@ export function AuthGate({children,admin=false}){
       React.createElement('span',null,`Empleado: ${profile.nombre} · ${profile.codigo} · ${profile.rol==='admin'?'Administrador':'Caja'}`),
       React.createElement('button',{onClick:signOut,style:{padding:'6px 10px',background:'#fff',color:'#152b4c',border:0,borderRadius:8,cursor:'pointer'}},'Cambiar empleado / salir')
     ),children);
+  const esAdmin = codigo.trim().toLowerCase() === 'admin01' || admin;
+  const accesoPin = !esAdmin && !usarClaveAnterior;
   const control={padding:12,border:'1px solid #bbb',borderRadius:8,width:'100%',boxSizing:'border-box'};
   return React.createElement('div',{style:{minHeight:'100vh',background:'#f1f3f7',display:'grid',placeItems:'center',fontFamily:'system-ui'}},
     React.createElement('form',{onSubmit:async e=>{e.preventDefault();setBusy(true);setError('');try{await signIn(codigo,clave);await check();}catch(err){setError(err.message);}finally{setBusy(false);}},style:{background:'#fff',padding:26,borderRadius:16,maxWidth:360,width:'92%',boxShadow:'0 3px 20px #0001'}},
       React.createElement('h2',null,admin?'Acceso administrativo':'Punto de venta'),
-      React.createElement('p',{style:{fontSize:13,color:'#555'}},'Entra con tu código personal de empleado y clave. No se requiere correo electrónico.'),
-      React.createElement('label',null,'Código de empleado',React.createElement('input',{type:'text',required:true,autoComplete:'username',placeholder:'Ejemplo: CAJA01',value:codigo,onChange:e=>setCodigo(e.target.value),style:control})),
-      React.createElement('label',null,'Clave personal (mínimo 8 caracteres)',React.createElement('input',{type:'password',required:true,minLength:8,autoComplete:'current-password',placeholder:'Clave personal',value:clave,onChange:e=>setClave(e.target.value),style:{...control,marginTop:7}})),
+      React.createElement('p',{style:{fontSize:13,color:'#555'}},'Accede con tu nombre de empleado y PIN. El administrador sigue usando su contraseña.'),
+      React.createElement('label',null,'Código de empleado',React.createElement('input',{type:'text',required:true,autoComplete:'username',placeholder:'Ejemplo: alberto',value:codigo,onChange:e=>{setCodigo(e.target.value);setClave('');setUsarClaveAnterior(false);},style:control})),
+      React.createElement('label',null,accesoPin?'PIN de 4 números':'Contraseña',React.createElement('input',{type:'password',required:true,minLength:accesoPin?4:8,maxLength:accesoPin?4:undefined,inputMode:accesoPin?'numeric':undefined,pattern:accesoPin?'[0-9]{4}':undefined,autoComplete:'current-password',placeholder:accesoPin?'••••':'Contraseña personal',value:clave,onChange:e=>setClave(e.target.value),style:{...control,marginTop:7}})),
+      !esAdmin&&React.createElement('button',{type:'button',onClick:()=>{setUsarClaveAnterior(!usarClaveAnterior);setClave('');},style:{marginTop:8,padding:0,fontSize:12,color:'#253a6b',background:'transparent',border:0,cursor:'pointer'}},usarClaveAnterior?'Usar PIN de 4 números':'Usar contraseña anterior'),
       error&&React.createElement('p',{role:'alert',style:{color:'#b91c1c',fontSize:13}},error),
       React.createElement('button',{disabled:busy,type:'submit',style:{marginTop:16,width:'100%',padding:12,border:0,borderRadius:8,background:'#253a6b',color:'#fff',cursor:'pointer'}},busy?'Validando...':'Entrar'),
       session&&React.createElement('button',{type:'button',onClick:signOut,style:{marginTop:10,background:'transparent',border:0,cursor:'pointer'}},'Cerrar sesión anterior')
