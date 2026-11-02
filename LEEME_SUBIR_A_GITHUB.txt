@@ -1,0 +1,38 @@
+PUNTO DE VENTA — TRES MARCAS / MISMA INTERFAZ
+
+ESTE ZIP REEMPLAZA SOLO EL REPOSITORIO DEL PUNTO DE VENTA.
+No lo subas al repositorio administrativo.
+
+INCLUYE
+- Crepísimo Centro y San Antonio: violeta y rosa
+- AM-Burgers: azul marino y naranja
+- Tichi: verde
+
+LAS TRES PANTALLAS TIENEN
+- Categorías visibles sin deslizamiento horizontal
+- Productos en tarjetas táctiles
+- Búsqueda dentro de la tienda
+- Pedido fijo a la derecha en tablet horizontal
+- Botones de cobro y cantidades
+- Mis productos creados desde el catálogo por sucursal
+
+SE MANTIENEN LAS OPERACIONES PROPIAS
+- Crepísimo: personalización de crepas, bebidas y promociones
+- AM-Burgers: hamburguesas, hot dogs, extras, combos y Didi
+- Tichi: jarabes, bases, envío y Mercado Libre
+
+INSTALACIÓN
+1. Haz una copia del repositorio actual de punto de venta.
+2. Extrae este ZIP.
+3. Sube directamente a la raíz de ESE MISMO repositorio en GitHub los archivos del ZIP (api, public, src, index.html, package.json, package-lock.json, vercel.json y vite.config.js).
+4. Haz Commit changes y revisa el despliegue de Vercel.
+5. Prueba sin efectuar cobros reales en las tres tiendas: añadir, quitar, cambiar cantidades y abrir la ventana de cobro.
+6. Cuando el catálogo y Supabase estén funcionando, comprueba una venta de bajo importe por marca y que el inventario correspondiente disminuya.
+
+No ejecutar SQL adicional por este rediseño. La pantalla de catálogo usa las tablas y funciones de catálogo instaladas anteriormente. Si aquel SQL falló, la creación de productos nuevos necesita corregirse por separado.
+
+VALIDACIÓN DE ESTA ENTREGA
+- Sintaxis de los dos componentes principales: verificada con Node.js.
+- Vistas de las tres marcas y descontar receta de productos nuevos: verificadas con pruebas simuladas.
+- Vite/Vercel y conexión real con Supabase: pendientes de validar tras subir el ZIP.
+- No modifica ni migra datos existentes en Supabase.

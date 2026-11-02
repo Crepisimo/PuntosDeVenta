@@ -1,6 +1,7 @@
 import {apiFetch, rpc, freshId, getCurrentStaff, isAdmin} from "./secureClient.jsx";
 // build 41097849028734243 - julio 2026
 import React, { useState } from "react";
+import POSUnificado from "./POSUnificado.jsx";
 import Catalogo from "./Catalogo.jsx";
 
 var CLIP_RATE = 0.04176;
@@ -889,6 +890,7 @@ function ModalPromo(props){
 
 function ModalCobro(props){
   var total=props.total,onConfirmar=props.onConfirmar,onClose=props.onClose;
+  var colorPrimario=props.colorPrimario||C.dark; var colorClaro=props.colorClaro||C.purpleL;
   var s=useState({metodo:props.metodoInicial||"",efectivo:"",terminalClip:""});var v=s[0];var set=s[1];
   function upd(k,val){set(function(p){var n={};for(var x in p)n[x]=p[x];n[k]=val;return n;});}
   var clip=Math.round(total*CLIP_RATE*100)/100,neto=Math.round((total-clip)*100)/100;
@@ -899,13 +901,13 @@ function ModalCobro(props){
     onConfirmar({metodo:v.metodo,total:total,comisionClip:v.metodo==="clip"?clip:0,netoRecibido:v.metodo==="clip"?neto:total,comisionDidi:0,cambio:v.metodo==="efectivo"?cambio:0,estadoPago:v.metodo==="didi"?"por_pagar":"pagado",terminalClip:v.metodo==="clip"?v.terminalClip:""});
   }
   return re("div",{style:OV},re("div",{style:MD},
-    re("div",{style:{fontSize:20,fontWeight:900,color:C.dark,marginBottom:4}},"Cobrar"),
-    re("div",{style:{fontSize:32,fontWeight:900,color:C.green,marginBottom:18}},fmt(total)),
+    re("div",{style:{fontSize:20,fontWeight:900,color:colorPrimario,marginBottom:4}},"Cobrar"),
+    re("div",{style:{fontSize:32,fontWeight:900,color:colorPrimario,marginBottom:18}},fmt(total)),
     re("div",{style:LB},"Metodo de pago"),
     re("div",{style:{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:16}},
       [["efectivo","💵","Efectivo"],["transferencia","📲","Transferencia"],["clip","💳","Clip"],["didi","🛵","Didi Food"]].map(function(x){
         var id=x[0],ico=x[1],l=x[2],sel=v.metodo===id;
-        return re("button",{key:id,onClick:function(){upd("metodo",id);},style:{padding:"12px 6px",border:"2px solid "+(sel?C.dark:"#e0e0e0"),borderRadius:10,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:4,background:sel?C.dark:"#fff",color:sel?"#fff":"#888",fontWeight:sel?800:500,fontSize:13}},
+        return re("button",{key:id,onClick:function(){upd("metodo",id);},style:{padding:"12px 6px",border:"2px solid "+(sel?colorPrimario:"#e0e0e0"),borderRadius:10,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:4,background:sel?colorPrimario:"#fff",color:sel?"#fff":"#888",fontWeight:sel?800:500,fontSize:13}},
           re("span",{style:{fontSize:20}},ico),re("span",null,l));
       })
     ),
@@ -915,13 +917,13 @@ function ModalCobro(props){
       efOk?re("div",{style:{marginTop:10,background:C.greenL,borderRadius:10,padding:14,textAlign:"center"}},re("div",{style:{fontSize:11,color:C.green,fontWeight:700,marginBottom:3}},"CAMBIO"),re("div",{style:{fontSize:32,fontWeight:900,color:C.green}},fmt(cambio))):null,
       v.efectivo&&!isNaN(efNum)&&efNum<total?re("div",{style:{marginTop:8,background:C.redL,borderRadius:9,padding:10,textAlign:"center",fontSize:14,color:C.red,fontWeight:700}},"Faltan "+fmt(total-efNum)):null
     ):null,
-    v.metodo==="clip"?re("div",{style:{background:C.purpleL,borderRadius:10,padding:14,marginBottom:16}},
-      re("div",{style:{fontSize:12,fontWeight:700,color:C.purple,marginBottom:8}},"Terminal"),
+    v.metodo==="clip"?re("div",{style:{background:colorClaro,borderRadius:10,padding:14,marginBottom:16}},
+      re("div",{style:{fontSize:12,fontWeight:700,color:colorPrimario,marginBottom:8}},"Terminal"),
       re("div",{style:{display:"flex",gap:8,marginBottom:10}},
-        [["migue","T. Migue"],["angel","T. Angel"]].map(function(x){var sel=v.terminalClip===x[0];return re("button",{key:x[0],onClick:function(){upd("terminalClip",x[0]);},style:{flex:1,padding:"9px",border:"2px solid "+(sel?C.dark:"#e0e0e0"),borderRadius:9,cursor:"pointer",fontWeight:sel?800:500,background:sel?C.dark:"#fff",color:sel?"#fff":"#888",fontSize:12}},x[1]);})
+        [["migue","T. Migue"],["angel","T. Angel"]].map(function(x){var sel=v.terminalClip===x[0];return re("button",{key:x[0],onClick:function(){upd("terminalClip",x[0]);},style:{flex:1,padding:"9px",border:"2px solid "+(sel?colorPrimario:"#e0e0e0"),borderRadius:9,cursor:"pointer",fontWeight:sel?800:500,background:sel?colorPrimario:"#fff",color:sel?"#fff":"#888",fontSize:12}},x[1]);})
       ),
-      re("div",{style:{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:5}},re("span",{style:{color:"#666"}},"Comisión Clip estimada (4.176%)"),re("span",{style:{color:C.purple,fontWeight:700}},"-"+fmt(clip))),
-      re("div",{style:{display:"flex",justifyContent:"space-between",fontSize:15,fontWeight:800}},re("span",{style:{color:C.purple}},"Neto a recibir"),re("span",{style:{color:C.purple}},fmt(neto)))
+      re("div",{style:{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:5}},re("span",{style:{color:"#666"}},"Comisión Clip estimada (4.176%)"),re("span",{style:{color:colorPrimario,fontWeight:700}},"-"+fmt(clip))),
+      re("div",{style:{display:"flex",justifyContent:"space-between",fontSize:15,fontWeight:800}},re("span",{style:{color:colorPrimario}},"Neto a recibir"),re("span",{style:{color:colorPrimario}},fmt(neto)))
     ):null,
     v.metodo==="transferencia"?re("div",{style:{background:C.indigoL,borderRadius:10,padding:14,marginBottom:16,textAlign:"center",fontSize:15,color:C.indigo,fontWeight:700}},"Pago completo: "+fmt(total)):null,
     v.metodo==="didi"?re("div",{style:{background:"#FFF3E0",borderRadius:10,padding:14,marginBottom:16,borderLeft:"4px solid #FF6D00"}},
@@ -930,7 +932,7 @@ function ModalCobro(props){
       ):null,
     re("div",{style:{display:"flex",gap:10}},
       re("button",{onClick:onClose,style:BS("#f0f0f0","#666")},"Cancelar"),
-      re("button",{onClick:confirmar,disabled:props.procesando||!v.metodo||(v.metodo==="efectivo"&&!efOk)||(v.metodo==="clip"&&!v.terminalClip),style:BS((v.metodo&&(v.metodo!=="efectivo"||efOk))?C.green:"#ccc","#fff",2)},v.metodo==="didi"?"Registrar (por pagar)":"Confirmar venta")
+      re("button",{onClick:confirmar,disabled:props.procesando||!v.metodo||(v.metodo==="efectivo"&&!efOk)||(v.metodo==="clip"&&!v.terminalClip),style:BS((v.metodo&&(v.metodo!=="efectivo"||efOk))?colorPrimario:"#ccc","#fff",2)},v.metodo==="didi"?"Registrar (por pagar)":"Confirmar venta")
     )
   ));
 }
@@ -1156,6 +1158,45 @@ function ModalPinReembolso(props){
     re('button',{onClick:function(){if(isAdmin())props.onAcceso();else window.alert('Solo un administrador puede reembolsar.');},style:BS(C.dark,'#fff')},'Confirmar reembolso'),
     re('button',{onClick:props.onClose,style:BS('#eee','#333')},'Cancelar')));
 }
+
+// Menú de las tres marcas, manteniendo catálogos y recetas existentes.
+function grupoCustom(productos){
+  return {id:'personalizados',nombre:'Mis productos',emoji:'📋',categorias:[
+    {id:'personalizados',nombre:'Productos nuevos',productos:(productos||[]).filter(function(p){return p.activo!==false;}).map(function(p){return {id:p.id,nombre:p.nombre,precio:Number(p.precio),emoji:'📋',__custom:true,raw:p};})}
+  ]};
+}
+function grupoMenuCrep(){
+  var grupos=[
+    {id:'crepas',nombre:'Crepas',emoji:'🥞',ids:['crepas_d','crepas_s','crepisimas']},
+    {id:'bebidas',nombre:'Bebidas',emoji:'🥤',ids:['frappes','cafe_frio','cafe_cal','latte_sin','smoothies','slush','sodas']},
+    {id:'especiales',nombre:'Temporada / extras',emoji:'✨',ids:['temporada','extras']}
+  ];
+  return grupos.map(function(gr){return {id:gr.id,nombre:gr.nombre,emoji:gr.emoji,categorias:MENU.filter(function(c){return gr.ids.includes(c.id);}).map(function(c){
+    var prods=c.tipo==='builder'?[{id:'armar',nombre:'Armar Crepísima',precio:45,emoji:c.emoji,cat:c,raw:null}]:c.prods.map(function(raw,j){return {id:c.id+'_'+j,nombre:typeof raw==='string'?raw:(raw.lbl||raw.n),precio:typeof raw==='object'?(raw.p||raw.precio||c.precio):c.precio,emoji:c.emoji,cat:c,raw:raw};});
+    return {id:c.id,nombre:c.nombre,productos:prods};
+  })};});
+}
+function grupoMenuAmb(){
+  return [
+    {id:'principales',nombre:'Hamburguesas',emoji:'🍔',ids:['hamburguesas']},
+    {id:'hotdogs',nombre:'Hot dogs',emoji:'🌭',ids:['hotdogs']},
+    {id:'acompanamientos',nombre:'Papas',emoji:'🍟',ids:['papas']},
+    {id:'bebidas',nombre:'Bebidas',emoji:'🥤',ids:['bebidas']}
+  ].map(function(gr){return {id:gr.id,nombre:gr.nombre,emoji:gr.emoji,categorias:MENU_AMB.filter(function(c){return gr.ids.includes(c.id);}).map(function(c){return {id:c.id,nombre:c.nombre,productos:c.prods.map(function(raw,j){return {id:c.id+'_'+j,nombre:typeof raw==='string'?raw:(raw.lbl||raw.n),precio:typeof raw==='object'?(raw.p||c.precio):c.precio,emoji:c.emoji,cat:c,raw:raw};})};})};});
+}
+function grupoMenuTichi(){
+  return [
+    {id:'sodas',nombre:'Jarabes soda',emoji:'🥤',productos:MENU_TICHI_SODAS},
+    {id:'cafes',nombre:'Jarabes café',emoji:'☕',productos:MENU_TICHI_CAFE},
+    {id:'bases',nombre:'Bases y polvos',emoji:'📦',productos:MENU_TICHI_BASES}
+  ].map(function(g){return {id:g.id,nombre:g.nombre,emoji:g.emoji,categorias:[{id:g.id,nombre:g.nombre,productos:g.productos.map(function(p){return {id:p.id,nombre:p.nombre,precio:p.precio,emoji:g.emoji,raw:p};})}]};});
+}
+function productoCatalogado(p){return {nombre:p.nombre,precio:Number(p.precio),productoCatalogoId:p.id,recetaSnapshot:JSON.parse(JSON.stringify(p.receta||[])),recetaKey:'',paraLlevar:'',usaVegetal:false};}
+function descontarRecetaNueva(item,productos,addDelta){
+  var p=(productos||[]).find(function(x){return x.id===item.productoCatalogoId&&x.activo!==false;});
+  if(!p||!Array.isArray(item.recetaSnapshot)||!item.recetaSnapshot.length)throw new Error('No está disponible la receta de '+item.nombre+'. Vuelve a cargar los productos.');
+  item.recetaSnapshot.forEach(function(r){var amount=Number(r.c);if(!r.id||!Number.isFinite(amount)||amount<=0)throw new Error('Receta inválida para '+item.nombre);addDelta(r.id,amount);});
+}
 function POS(props){
   var tiendaId=props.tiendaId,insumos=props.insumos,setInsumos=props.setInsumos,onVenta=props.onVenta,onGasto=props.onGasto,ventas=props.ventas,gastos=props.gastos;
   var sProcesando=useState(false);var procesando=sProcesando[0];var setProcesando=sProcesando[1];
@@ -1338,142 +1379,27 @@ function POS(props){
     );
   }
 
-  return re('div',{style:{padding:12,background:'#F6F7FB',minHeight:'100vh',width:'100%',minWidth:0}},
-    exito?re('div',{style:{position:'fixed',top:20,left:'50%',transform:'translateX(-50%)',background:C.green,color:'#fff',padding:'12px 28px',borderRadius:50,fontWeight:800,fontSize:16,zIndex:300,whiteSpace:'nowrap',boxShadow:'0 10px 30px rgba(0,0,0,.18)'}},'Venta registrada'):null,
-
-    re('div',{style:{background:'#fff',borderRadius:22,padding:'16px 18px',boxShadow:'0 10px 30px rgba(46,64,87,.08)',marginBottom:16,display:'flex',alignItems:'center',gap:14,flexWrap:'wrap'}},
-      re('div',{style:{fontSize:28,fontWeight:900,color:C.dark,display:'flex',alignItems:'center',gap:10}},
-        re('div',{style:{width:42,height:42,borderRadius:12,background:'linear-gradient(135deg,#f5ce3e,#52ABD8,#7936AD)',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:900}},'C'),
-        'Crepísimo'
-      ),
-      re('div',{style:{height:34,width:1,background:'#e8e8ef'}}),
-      re('div',{style:{padding:'10px 14px',border:'1px solid #e4e8f2',borderRadius:14,fontSize:15,fontWeight:700,color:C.slate}},'📍 '+tiendaNombre),
-      re('div',{style:{marginLeft:'auto',display:'flex',gap:12,flexWrap:'wrap'}},
-        re('div',{style:{padding:'10px 14px',border:'1px solid #e4e8f2',borderRadius:14,fontSize:15,fontWeight:700,color:C.slate}},'👤 '+nombreEmpleado),
-        re('div',{style:{padding:'10px 14px',border:'1px solid #e4e8f2',borderRadius:14,fontSize:15,fontWeight:700,color:C.slate}},'🗓️ '+fechaLarga)
-      )
-    ),
-
-    re('div',{className:'pos-tablet-layout'},
-      re('div',{className:'pos-tablet-main'},
-        re('div',{className:'pos-category-groups',style:props.soloNuevos?{gridTemplateColumns:'1fr'}:undefined},
-          gruposMenu.map(parentGroup)
-        ),
-        grupoActivo==='personalizados'?re('div',{className:'pos-category-sub'},
-          [''].concat(categoriasPropias).map(function(c){return re('button',{key:c||'todos',className:'pos-sub-btn'+(filtroPersonalizado===c?' selected':''),onClick:function(){setFiltroPersonalizado(c);setBusqueda('');}},c||'Todas las categorías');})
-        ):!props.soloNuevos?re('div',{className:'pos-category-sub'},
-          subcategorias.map(function(c){var act=catalogoCategoria.id===c.id;return re('button',{key:c.id,className:'pos-sub-btn'+(act?' selected':''),onClick:function(){setCat(c);setBusqueda('');setVerPromos(false);}},c.emoji+' '+c.nombre);})
-        ):null,
-        re('div',{style:{display:'flex',gap:10,flexWrap:'wrap',marginBottom:14}},
-          !props.soloNuevos?ActionBtn('🎉 Promos',C.amberL,'#7A5A00',function(){setVerPromos(true);},C.amber):null,
-          ActionBtn('🏷 Descuento',C.purpleL,C.dark,function(){setModalDesc(true);},C.purple),
-          !props.soloNuevos?ActionBtn('👤 Empleado', '#E7F6EE', '#1C7C54', function(){setModalEmpleado(true);}, '#BCE8CE'):null,
-          ActionBtn('+ Gasto', C.redL, C.red, function(){setModalGasto(true);}, C.red)
-        ),
-        re('div',{style:{background:'#fff',borderRadius:22,padding:16,boxShadow:'0 8px 22px rgba(46,64,87,.06)'}},
-          re('div',{style:{display:'flex',gap:12,alignItems:'center',justifyContent:'space-between',marginBottom:16,flexWrap:'wrap'}},
-            re('div',null,
-              re('div',{style:{fontSize:26,fontWeight:900,color:C.slate}},verPromos?'Promociones':(catalogoCategoria?catalogoCategoria.nombre:'Productos')),
-              re('div',{style:{fontSize:13,color:'#7d8798',marginTop:4}},verPromos?'Selecciona una promo para agregarla a la orden':'Toca un producto para agregarlo a la orden')
-            ),
-            !verPromos?re('div',{style:{minWidth:280,flex:'0 1 380px',position:'relative'}},
-              re('input',{value:busqueda,onChange:function(e){setBusqueda(e.target.value);},placeholder:'Buscar producto...',style:{width:'100%',padding:'14px 16px',paddingLeft:42,border:'1px solid #dfe4ef',borderRadius:14,fontSize:15,outline:'none',background:'#FBFCFE'}}),
-              re('div',{style:{position:'absolute',left:14,top:12,fontSize:18,color:'#98A2B3'}},'🔎')
-            ):re('button',{onClick:function(){setVerPromos(false);},style:{padding:'12px 16px',border:'1px solid #d9deee',borderRadius:14,background:'#fff',fontWeight:800,cursor:'pointer',color:C.slate}},'← Volver a productos')
-          ),
-          verPromos?
-            re('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:14}},
-              PROMOS.map(function(promo){return re('button',{key:promo.id,onClick:function(){setModalPromo(promo);},style:{background:C.amberL,border:'1px solid '+C.amber,borderRadius:18,cursor:'pointer',padding:'18px 16px',display:'flex',alignItems:'center',gap:14,textAlign:'left'}},
-                re('div',{style:{fontSize:34}},promo.emoji),
-                re('div',{style:{flex:1}},re('div',{style:{fontSize:18,fontWeight:900,color:C.slate,marginBottom:4}},promo.nombre),re('div',{style:{fontSize:13,color:'#7d8798'}},'Agregar promoción a la orden')),
-                re('div',{style:{fontSize:22,color:'#7A5A00'}},'→')
-              );})
-            ):
-            re('div',{className:'pos-product-grid'},
-              productosVisibles.length?productosVisibles.map(ProdCard):re('div',{style:{gridColumn:'1 / -1',padding:'40px 20px',textAlign:'center',color:'#98A2B3',fontWeight:700}},'No se encontraron productos con esa búsqueda')
-            )
-        )
-      ),
-
-      re('div',{className:'pos-order-side'},
-        re('div',{style:{background:'#fff',borderRadius:22,padding:18,boxShadow:'0 10px 30px rgba(46,64,87,.08)'}},
-          re('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}},
-            re('div',{style:{fontSize:30,fontWeight:900,color:C.slate}},'Pedido'),
-            re('button',{onClick:vaciarOrden,disabled:orden.length===0,style:{width:42,height:42,borderRadius:12,border:'1px solid #e5e7ef',background:orden.length===0?'#f8f8fb':'#fff',cursor:orden.length===0?'default':'pointer',fontSize:18}},'🗑️')
-          ),
-          re('div',{style:{padding:'10px 12px',background:'#f3f6fc',borderRadius:12,fontSize:12,color:'#64748b',marginBottom:12}},'Elige «Para llevar» en las opciones del producto.'),
-          grupos.length===0?
-            re('div',{style:{padding:'30px 16px',textAlign:'center',color:'#98A2B3',fontSize:15,fontWeight:700,border:'1px dashed #dbe1ee',borderRadius:16,marginBottom:16}},'Todavía no hay productos en la orden'):
-            re('div',{style:{maxHeight:'52vh',overflowY:'auto',paddingRight:4,marginBottom:16}},
-              grupos.map(function(g,idx){
-                return re('div',{key:g.key,style:{padding:'12px 0',borderBottom:idx<grupos.length-1?'1px solid #eff2f7':'none'}},
-                  re('div',{style:{display:'flex',justifyContent:'space-between',gap:8,marginBottom:8}},
-                    re('div',{style:{flex:1}},
-                      re('div',{style:{fontSize:16,fontWeight:900,color:g.item.esDescuento?C.purple:C.slate,lineHeight:1.15}},g.item.nombre),
-                      g.item.detalle?re('div',{style:{fontSize:12,color:'#7d8798',marginTop:3}},g.item.detalle):null,
-                      g.item.paraLlevar?re('div',{style:{fontSize:12,color:'#7d8798',marginTop:3}},g.item.paraLlevar):null,
-                      g.item.esPromo?re('div',{style:{fontSize:11,color:'#7A5A00',fontWeight:800,marginTop:3}},'PROMO'):null,
-                      g.item.esDescuento?re('div',{style:{fontSize:11,color:C.purple,fontWeight:800,marginTop:3}},'DESCUENTO'):null
-                    ),
-                    re('div',{style:{fontSize:16,fontWeight:900,color:g.total<0?C.purple:C.slate}},g.total<0?'-'+fmt(Math.abs(g.total)):fmt(g.total))
-                  ),
-                  re('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between'}},
-                    re('div',{style:{display:'flex',alignItems:'center',gap:6,border:'1px solid #dfe4ef',borderRadius:999,padding:'4px 8px'}},
-                      re('button',{onClick:function(){quitarGrupo(g.key);},style:{border:'none',background:'transparent',cursor:'pointer',fontSize:22,color:C.slate,lineHeight:1}},'−'),
-                      re('div',{style:{minWidth:18,textAlign:'center',fontWeight:900,fontSize:16,color:C.slate}},String(g.cantidad)),
-                      re('button',{onClick:function(){duplicarItem(g.item);},style:{border:'none',background:'transparent',cursor:'pointer',fontSize:22,color:C.slate,lineHeight:1}},'+')
-                    ),
-                    re('button',{onClick:function(){setOrden(function(p){return p.filter(function(it){return it.id!==g.item.id;});});},style:{border:'none',background:'transparent',cursor:'pointer',fontSize:18,color:C.red}},'⋮')
-                  )
-                );
-              })
-            ),
-          re('div',{style:{border:'1px solid #dfe4ef',borderRadius:14,padding:'12px 14px',fontSize:13,color:'#7d8798',marginBottom:14}},'Las notas y variantes se seleccionan al agregar cada producto.'),
-          re('div',{style:{display:'flex',justifyContent:'space-between',fontSize:15,color:'#7d8798',marginBottom:6}},re('span',null,'Subtotal'),re('span',{style:{fontWeight:800,color:C.slate}},fmt(totalDisplay))),
-          re('div',{style:{display:'flex',justifyContent:'space-between',fontSize:15,color:'#7d8798',marginBottom:10}},re('span',null,'Artículos'),re('span',{style:{fontWeight:800,color:C.slate}},String(orden.length))),
-          total<0?re('div',{style:{fontSize:12,color:C.purple,marginBottom:10,textAlign:'right',fontWeight:800}},'Descuento aplicado'):null,
-          re('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-end',paddingTop:12,borderTop:'1px solid #edf1f7',marginBottom:16}},
-            re('div',{style:{fontSize:20,fontWeight:900,color:C.slate}},'Total'),
-            re('div',{style:{fontSize:34,fontWeight:900,color:C.dark}},fmt(totalDisplay))
-          ),
-          re('button',{onClick:function(){setMetodoCobroInicial('');setModalCobro(true);},disabled:orden.length===0,style:{width:'100%',padding:'16px 18px',background:orden.length===0?'#cfd5e5':C.dark,color:'#fff',border:'none',borderRadius:16,fontWeight:900,fontSize:24,cursor:orden.length===0?'default':'pointer',marginBottom:12,boxShadow:'0 12px 24px rgba(121,54,173,.18)'}},'Cobrar'),
-          re('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:14}},
-            re('button',{onClick:function(){setMetodoCobroInicial('efectivo');setModalCobro(true);},disabled:orden.length===0,style:{padding:'14px 12px',border:'1px solid #dfe4ef',borderRadius:14,background:'#fff',fontWeight:800,fontSize:16,cursor:'pointer',color:C.slate}},'Efectivo'),
-            re('button',{onClick:function(){setMetodoCobroInicial('clip');setModalCobro(true);},disabled:orden.length===0,style:{padding:'14px 12px',border:'1px solid #dfe4ef',borderRadius:14,background:'#fff',fontWeight:800,fontSize:16,cursor:'pointer',color:C.slate}},'Clip')
-          ),
-          re('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}},
-            re('div',{style:{background:'#FAFBFF',border:'1px solid #e8ebf3',borderRadius:16,padding:12}},
-              re('div',{style:{fontSize:12,color:'#7d8798',fontWeight:700,marginBottom:4}},'Ventas hoy'),
-              re('div',{style:{fontSize:22,fontWeight:900,color:C.slate}},fmt(tv))
-            ),
-            re('div',{style:{background:'#FAFBFF',border:'1px solid #e8ebf3',borderRadius:16,padding:12}},
-              re('div',{style:{fontSize:12,color:'#7d8798',fontWeight:700,marginBottom:4}},'Efectivo'),
-              re('div',{style:{fontSize:22,fontWeight:900,color:efCaja>=0?C.slate:C.red}},fmt(efCaja))
-            )
-          ),
-          (alertas.length>0||agotados.length>0)?re('div',{style:{background:C.amberL,border:'1px solid '+C.amber,borderRadius:16,padding:'12px 14px',marginTop:12}},
-            re('div',{style:{fontSize:12,fontWeight:900,color:'#7A5A00',marginBottom:6}},'Alertas de inventario'),
-            agotados.slice(0,2).map(function(i){return re('div',{key:i.id,style:{fontSize:12,color:C.red,marginBottom:2}},'Agotado: '+i.nombre);}),
-            alertas.slice(0,2).map(function(i){return re('div',{key:i.id,style:{fontSize:12,color:'#7A5A00',marginBottom:2}},'Stock bajo: '+i.nombre);})
-          ):null,
-          re('div',{style:{display:'flex',gap:10,marginTop:12}},
-            re('button',{onClick:function(){if(isAdmin())setVerCorte(function(v){return !v;});else window.alert('El corte requiere administrador.');},style:{flex:1,padding:'12px 10px',background:C.slate,color:'#fff',border:'none',borderRadius:14,fontWeight:800,fontSize:13,cursor:'pointer'}},verCorte?'Ocultar corte':'Ver corte'),
-            re('button',{onClick:function(){setModalGasto(true);},style:{flex:1,padding:'12px 10px',background:'#fff',color:C.red,border:'1px solid '+C.red,borderRadius:14,fontWeight:800,fontSize:13,cursor:'pointer'}},'Registrar gasto')
-          ),
-          verCorte?re('div',{style:{background:C.slate,borderRadius:16,padding:14,color:'#fff',marginTop:12}},
-            re('div',{style:{fontSize:12,opacity:.65,textTransform:'uppercase',letterSpacing:.5,marginBottom:8}},'Corte del día'),
-            re('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
-              [['Ventas',tv],['Transferencia',tTr],['Clip neto',tCl],['Comisión Clip',tComCl]].map(function(x){
-                return re('div',{key:x[0],style:{background:'rgba(255,255,255,.08)',borderRadius:12,padding:10}},
-                  re('div',{style:{fontSize:11,opacity:.7,marginBottom:4}},x[0]),
-                  re('div',{style:{fontSize:16,fontWeight:900}},fmt(x[1]))
-                );
-              })
-            )
-          ):null
-        )
-      )
-    ),
+  var categoriasUnificadas=grupoMenuCrep().concat([grupoCustom(props.productosNuevos)]);
+  return re('div',null,
+    re(POSUnificado,{
+      marca:'crepisimo',tiendaNombre:tiendaId==='centro'?'Sucursal Centro':'Sucursal San Antonio',
+      grupos:categoriasUnificadas,soloNuevos:props.soloNuevos,orden:orden,setOrden:setOrden,
+      exito:exito,procesando:procesando,ventasPeriodo:tv,efectivoPeriodo:efCaja,
+      fechaCorte:fechaCorte,onCambiarFechaCorte:setFechaCorte,mostrarCorte:verCorte,
+      onAlternarCorte:function(){if(isAdmin())setVerCorte(function(v){return !v;});else window.alert('El corte requiere administrador.');},
+      datosCorte:[['Ventas',tv],['Transferencia',tTr],['Clip neto',tCl],['Comisión Clip',tComCl]],
+      alertas:alertas.concat(agotados),
+      onSeleccionar:function(p){
+        if(p.__promo){setModalPromo(p.original);return;}
+        if(p.__custom){agregarItem(productoCatalogado(p.raw));return;}
+        abrirProd(p.cat,p.raw);
+      },
+      onPromociones:props.soloNuevos?null:PROMOS.map(function(p){return Object.assign({__promo:true,original:p},p);}),
+      onDescuento:function(){setModalDesc(true);},
+      onEmpleado:props.soloNuevos?null:function(){setModalEmpleado(true);},
+      onGasto:function(){setModalGasto(true);},
+      onCobrar:function(m){setMetodoCobroInicial(m);setModalCobro(true);}
+    }),
     modalPinCorte?re(ModalPin,{onAcceso:function(){setVerCorte(true);setModalPinCorte(false);},onClose:function(){setModalPinCorte(false);}}):null,
     modalProd?re(ModalProducto,{cat:modalProd.cat,prod:modalProd.prod,tipo:modalProd.cat.tipo,precio:modalProd.cat.precio,onAdd:agregarItem,onClose:function(){setModalProd(null);}}):null,
     modalCrep?re(ModalCrepisima,{onAdd:agregarItem,onClose:function(){setModalCrep(false);}}):null,
@@ -1481,7 +1407,7 @@ function POS(props){
     modalPromo?re(ModalPromo,{promo:modalPromo,onAdd:agregarItems,onClose:function(){setModalPromo(null);}}):null,
     modalCobro?re(ModalCobro,{total:totalDisplay,metodoInicial:metodoCobroInicial,onConfirmar:confirmarCobro,onClose:function(){setModalCobro(false);},procesando:procesando}):null,
     modalGasto?re(ModalGasto,{insumos:insumos,onGuardar:confirmarGasto,onClose:function(){setModalGasto(false);}}):null,
-    modalEmpleado?re(ModalEmpleado,{onAdd:function(item){agregarItem(item);},onClose:function(){setModalEmpleado(false);}}):null
+    modalEmpleado?re(ModalEmpleado,{onAdd:agregarItem,onClose:function(){setModalEmpleado(false);}}):null
   );
 }
 function Pedidos(props){
@@ -2442,7 +2368,8 @@ function POSAmburger(props){
     var hayParaLlevar=orden.some(function(item){return item.paraLlevar==="Para llevar";});
     orden.forEach(function(item){
       if(item.esDescuento)return;
-      var rec=R_AMB[item.recetaKey]||[];
+      if(item.productoCatalogoId){descontarRecetaNueva(item,props.productosNuevos,addDelta);return;}
+      var rec=item.extraRec||R_AMB[item.recetaKey]||[];
       rec.forEach(function(r){addDelta(r.id,r.c);});
     });
     if(hayParaLlevar)addDelta("amb_bolsa_papel",1);
@@ -2477,126 +2404,31 @@ function POSAmburger(props){
   var AMB_CAT={background:"#fff3e0",border:"2px solid "+AMB_ORANGE,borderRadius:12,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"14px 8px"};
   var AMB_PROD={aspectRatio:"1",background:"#fff",border:"2px solid #e0e0e0",borderRadius:12,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:8,boxShadow:"0 1px 4px rgba(0,0,0,.06)"};
 
-  return re("div",{style:{padding:"10px 10px 70px"}},
-    exito?re("div",{style:{position:"fixed",top:80,left:"50%",transform:"translateX(-50%)",background:AMB_ORANGE,color:"#fff",padding:"12px 28px",borderRadius:50,fontWeight:800,fontSize:16,zIndex:300,whiteSpace:"nowrap"}},"Venta registrada"):null,
-
-
-
-    !catActiva&&!verPromos?re("div",null,
-      re("div",{style:{display:"flex",gap:8,marginBottom:14}},
-        re("button",{onClick:function(){setVerPromos(true);},style:{flex:1,padding:13,background:"#fff3e0",color:AMB_DARK,border:"2px solid "+AMB_ORANGE,borderRadius:12,fontWeight:800,fontSize:13,cursor:"pointer"}},"Combos"),
-        re("button",{onClick:function(){setModalDesc(true);},style:{flex:1,padding:13,background:C.purpleL,color:C.dark,border:"2px solid "+C.purple,borderRadius:12,fontWeight:800,fontSize:13,cursor:"pointer"}},"Descuento"),
-        re("button",{onClick:function(){setModalGasto(true);},style:{flex:1,padding:9,background:C.redL,color:C.red,border:"2px solid "+C.red,borderRadius:10,fontWeight:800,fontSize:12,cursor:"pointer"}},"+ Gasto")
-      ),
-      re("div",{style:SC},"Menu"),
-      re("div",{style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:20}},
-        MENU_AMB.map(function(cat){return re("button",{key:cat.id,onClick:function(){setCat(cat);},style:AMB_CAT},
-          re("div",{style:{fontSize:22}},cat.emoji),
-          re("div",{style:{fontSize:11,fontWeight:800,color:AMB_DARK,marginTop:3,textAlign:"center",lineHeight:1.2}},cat.nombre),
-          cat.precio?re("div",{style:{fontSize:11,color:"#aaa",marginTop:2}},fmt(cat.precio)):null
-        );})
-      )
-    ):null,
-
-    verPromos?re("div",null,
-      re("button",{onClick:function(){setVerPromos(false);},style:{background:"none",border:"none",color:AMB_DARK,fontWeight:700,fontSize:14,cursor:"pointer",marginBottom:12,padding:0}},"<- Menu"),
-      re("div",{style:SC},"Combos"),
-      PROMOS_AMB.map(function(promo){return re("button",{key:promo.id,onClick:function(){setModalPromo(promo);},style:{background:"#fff3e0",border:"2px solid "+AMB_ORANGE,borderRadius:12,cursor:"pointer",padding:"12px 14px",display:"flex",alignItems:"center",gap:10,marginBottom:8,width:"100%"}},
-        re("div",{style:{fontSize:28}},promo.emoji),
-        re("div",{style:{flex:1,textAlign:"left"}},re("div",{style:{fontSize:14,fontWeight:800,color:AMB_DARK}},promo.nombre)),
-        re("div",{style:{fontSize:20,color:AMB_ORANGE}},"->")
-      );})
-    ):null,
-
-    catActiva?re("div",null,
-      re("button",{onClick:function(){setCat(null);},style:{background:"none",border:"none",color:AMB_DARK,fontWeight:700,fontSize:14,cursor:"pointer",marginBottom:12,padding:0}},"<- Menu"),
-      re("div",{style:SC},catActiva.emoji+" "+catActiva.nombre),
-      re("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}},
-        catActiva.prods.map(function(prod,i){
-          var nombre=typeof prod==="string"?prod:(prod.lbl||prod.n);
-          var precio=typeof prod==="object"&&prod.p?prod.p:catActiva.precio;
-          return re("button",{key:i,onClick:function(){abrirProducto(catActiva,prod);},style:AMB_PROD},
-            re("div",{style:{fontSize:12,fontWeight:800,color:AMB_DARK,textAlign:"center",lineHeight:1.3}},nombre),
-            re("div",{style:{fontSize:12,color:AMB_ORANGE,fontWeight:700,marginTop:5}},fmt(precio))
-          );
-        })
-      )
-    ):null,
-
-    orden.length>0?re("div",{style:{background:"#fff",borderRadius:14,padding:16,marginBottom:14,boxShadow:"0 1px 6px rgba(0,0,0,.09)"}},
-      re("div",{style:SC},"Orden actual"),
-      orden.map(function(item,i){
-        return re("div",{key:item.id,style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",padding:"8px 0",borderBottom:i<orden.length-1?"1px solid #f5f5f5":"none"}},
-          re("div",{style:{flex:1,paddingRight:8}},
-            re("div",{style:{fontSize:14,fontWeight:600,color:item.esDescuento?C.purple:AMB_DARK}},item.nombre),
-            item.paraLlevar?re("div",{style:{fontSize:11,color:"#aaa",marginTop:1}},item.paraLlevar):null,
-            item.esPromo?re("div",{style:{fontSize:10,color:AMB_ORANGE,fontWeight:700,marginTop:1}},"COMBO"):null,
-            item.esDescuento?re("div",{style:{fontSize:10,color:C.purple,fontWeight:700,marginTop:1}},"DESCUENTO"):null
-          ),
-          re("div",{style:{display:"flex",alignItems:"center",gap:8,flexShrink:0}},
-            re("div",{style:{fontSize:14,fontWeight:700,color:item.precio===0?"#aaa":item.precio<0?C.purple:AMB_ORANGE}},
-              item.precio===0?"GRATIS":item.precio<0?"-"+fmt(Math.abs(item.precio)):fmt(item.precio)),
-            re("button",{onClick:function(){var idx=i;setOrden(function(p){return p.filter(function(_,j){return j!==idx;});});},style:{background:C.redL,border:"none",color:C.red,borderRadius:6,padding:"3px 8px",cursor:"pointer",fontSize:12,fontWeight:700}},"X")
-          )
-        );
-      }),
-      re("div",{style:{display:"flex",justifyContent:"space-between",marginTop:10,paddingTop:10,borderTop:"2px solid #f0f0f0"}},
-        re("span",{style:{fontSize:16,fontWeight:800,color:AMB_DARK}},"Total"),
-        re("span",{style:{fontSize:20,fontWeight:900,color:AMB_ORANGE}},fmt(totalDisplay))
-      ),
-      re("button",{onClick:function(){setModalCobro(true);},style:{width:"100%",marginTop:12,padding:15,background:AMB_ORANGE,color:"#fff",border:"none",borderRadius:12,fontWeight:900,fontSize:17,cursor:"pointer"}},"Cobrar "+fmt(totalDisplay))
-    ):null,
-
-    verCorte?re("div",{style:{background:AMB_DARK,borderRadius:16,padding:18,color:"#fff",marginTop:14}},
-      re("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
-        re("div",{style:{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:.5,opacity:.6}},"Corte del dia"),
-        re("button",{onClick:function(){setVerCorte(false);},style:{background:"rgba(255,255,255,.15)",border:"none",color:"#fff",borderRadius:8,padding:"4px 10px",fontSize:11,cursor:"pointer"}},"Ocultar")
-      ),
-      re("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:12}},
-        re("button",{onClick:function(){var d=new Date(fechaCorte+"T12:00:00");d.setDate(d.getDate()-1);setFechaCorte(d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2));},style:{background:"rgba(255,255,255,.15)",border:"none",color:"#fff",borderRadius:8,padding:"6px 14px",fontSize:18,cursor:"pointer",fontWeight:800}},"‹"),
-        re("div",{style:{flex:1,textAlign:"center"}},
-          re("div",{style:{fontSize:12,color:"rgba(255,255,255,.9)",fontWeight:700}},fechaCorte===hoy()?"HOY - "+fechaCorte:new Date(fechaCorte+"T12:00:00").toLocaleDateString("es-MX",{weekday:"short",day:"2-digit",month:"short"})+" - "+fechaCorte)
-        ),
-        re("button",{onClick:function(){var d=new Date(fechaCorte+"T12:00:00");d.setDate(d.getDate()+1);var nd=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);if(nd<=hoy())setFechaCorte(nd);},disabled:fechaCorte>=hoy(),style:{background:fechaCorte>=hoy()?"rgba(255,255,255,.05)":"rgba(255,255,255,.15)",border:"none",color:fechaCorte>=hoy()?"rgba(255,255,255,.2)":"#fff",borderRadius:8,padding:"6px 14px",fontSize:18,cursor:fechaCorte>=hoy()?"default":"pointer",fontWeight:800}},"›")
-      ),
-      re("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}},
-        [["Ventas hoy",tv,"#a5d6a7"],["Efectivo en caja",efCaja,efCaja>=0?"#a5d6a7":"#ef9a9a"],["Transferencias",tTr,"#90caf9"],["Clip (neto)",tCl,"#ce93d8"]].map(function(x){
-          return re("div",{key:x[0],style:{background:"rgba(255,255,255,.08)",borderRadius:10,padding:"12px 14px"}},
-            re("div",{style:{fontSize:11,opacity:.65,marginBottom:3}},x[0]),
-            re("div",{style:{fontSize:17,fontWeight:900,color:x[2]}},fmt(x[1]))
-          );
-        })
-      ),
-      tDidi>0?re("div",{style:{background:"rgba(255,255,255,.08)",borderRadius:10,padding:"12px 14px",marginBottom:10}},
-        re("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
-          re("div",null,re("div",{style:{fontSize:11,opacity:.65}},"Didi Food (T. Migue)"),re("div",{style:{fontSize:17,fontWeight:900,color:"#FFB74D"}},fmt(tDidi))),
-          tDidiPorPagar>0?re("div",{style:{background:"rgba(255,109,0,.3)",borderRadius:8,padding:"3px 8px",fontSize:11,color:"#FFB74D",fontWeight:700}},"Por pagar: "+fmt(tDidiPorPagar)):re("div",{style:{fontSize:11,color:"#a5d6a7",fontWeight:600}},"Cobrado")
-        )
-      ):null,
-      tDidi>0?re("div",{style:{background:"rgba(255,255,255,.08)",borderRadius:10,padding:"12px 14px",marginBottom:10}},re("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},re("div",null,re("div",{style:{fontSize:11,opacity:.65}},"Didi Food (T. Migue)"),re("div",{style:{fontSize:17,fontWeight:900,color:"#FFB74D"}},fmt(tDidi))),tDidiPorPagar>0?re("div",{style:{background:"rgba(255,109,0,.3)",borderRadius:8,padding:"3px 8px",fontSize:11,color:"#FFB74D",fontWeight:700}},"Por pagar: "+fmt(tDidiPorPagar)):re("div",{style:{fontSize:11,color:"#a5d6a7",fontWeight:600}},"Cobrado"))):null,
-      gastosCajaHoy.length>0?re("div",{style:{borderTop:"1px solid rgba(255,255,255,.1)",paddingTop:12}},
-        re("div",{style:{fontSize:11,opacity:.5,marginBottom:8,textTransform:"uppercase"}},"Gastos de caja hoy"),
-        gastosCajaHoy.map(function(g,i){
-          var desc=g.tipo==="insumo"?"Insumo: "+(g.insumoNombre||"")+" ("+fmtC(g.cantidad,g.unidad)+")":g.tipo==="colaborador"?"Colab: "+(g.desc||""):g.tipo==="operativo"?"Operativo: "+(g.desc||""):"Otro: "+(g.desc||"");
-          return re("div",{key:i,style:{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:4}},
-            re("span",{style:{opacity:.75}},desc),re("span",{style:{color:"#ef9a9a"}},fmt(g.monto))
-          );
-        })
-      ):null,
-      ventasHoy.length===0&&gastosCajaHoy.length===0?re("div",{style:{textAlign:"center",opacity:.35,fontSize:13}},"Sin movimientos hoy"):null
-    ):re("button",{onClick:function(){if(isAdmin())setVerCorte(true);else window.alert("El corte requiere administrador.");},style:{width:"100%",padding:"14px",background:AMB_DARK,color:"#fff",border:"none",borderRadius:14,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}},re("span",null,"🔒"),re("span",null,"Ver corte del dia")),
-
-    (alertas.length>0||agotados.length>0)?re("div",{style:{background:C.amberL,border:"2px solid "+C.amber,borderRadius:12,padding:"12px 14px",marginTop:14}},
-      re("div",{style:{fontSize:12,fontWeight:800,color:C.amber,marginBottom:6}},"Alertas de inventario"),
-      agotados.map(function(i){return re("div",{key:i.id,style:{fontSize:12,color:C.red,marginBottom:2}},"AGOTADO: "+i.nombre);}),
-      alertas.map(function(i){return re("div",{key:i.id,style:{fontSize:12,color:C.amber,marginBottom:2}},"Stock bajo: "+i.nombre+" ("+fmtC(i.stock||0,i.unidad)+")");})
-    ):null,
+  var gruposAmb=grupoMenuAmb().concat([grupoCustom(props.productosNuevos)]);
+  var methodAmb=React.useState('');var metodoAmb=methodAmb[0];var setMetodoAmb=methodAmb[1];
+  return re('div',null,
+    re(POSUnificado,{
+      marca:'amburger',tiendaNombre:'AM-Burgers',grupos:gruposAmb,soloNuevos:props.soloNuevos,
+      orden:orden,setOrden:setOrden,exito:exito,procesando:procesando,ventasPeriodo:tv,efectivoPeriodo:efCaja,
+      fechaCorte:fechaCorte,onCambiarFechaCorte:setFechaCorte,mostrarCorte:verCorte,
+      onAlternarCorte:function(){if(isAdmin())setVerCorte(function(v){return !v;});else window.alert('El corte requiere administrador.');},
+      datosCorte:[['Ventas',tv],['Transferencia',tTr],['Clip neto',tCl],['Comisión Clip',tComCl],['Didi pendiente',tDidiPorPagar]],
+      alertas:alertas.concat(agotados),
+      onSeleccionar:function(p){
+        if(p.__promo){setModalPromo(p.original);return;}
+        if(p.__custom){agregarItem(productoCatalogado(p.raw));return;}
+        abrirProducto(p.cat,p.raw);
+      },
+      onPromociones:props.soloNuevos?null:PROMOS_AMB.map(function(p){return Object.assign({__promo:true,original:p},p);}),
+      onDescuento:function(){setModalDesc(true);},
+      onGasto:function(){setModalGasto(true);},
+      onCobrar:function(m){setMetodoAmb(m);setModalCobro(true);}
+    }),
     modalPinCorte?re(ModalPin,{onAcceso:function(){setVerCorte(true);setModalPinCorte(false);},onClose:function(){setModalPinCorte(false);}}):null,
     modalPromo?re(ModalPromoAmb,{promo:modalPromo,onAdd:agregarItems,onClose:function(){setModalPromo(null);}}):null,
-    modalCobro?re(ModalCobro,{total:totalDisplay,onConfirmar:confirmarCobro,onClose:function(){setModalCobro(false);},procesando:procesando}):null,
+    modalCobro?re(ModalCobro,{total:totalDisplay,colorPrimario:"#173D77",colorClaro:"#EAF1FB",metodoInicial:metodoAmb,onConfirmar:confirmarCobro,onClose:function(){setModalCobro(false);},procesando:procesando}):null,
     modalGasto?re(ModalGasto,{insumos:insumos,onGuardar:confirmarGasto,onClose:function(){setModalGasto(false);}}):null,
-    modalDesc?re(ModalDescuento,{onAdd:function(item){agregarItem(item);},onClose:function(){setModalDesc(false);}}):null,
-
+    modalDesc?re(ModalDescuento,{onAdd:agregarItem,onClose:function(){setModalDesc(false);}}):null,
     // Modal para hamburguesa/hotdog con extras y para llevar
     modalExtras&&prodBase?re("div",{style:OV},re("div",{style:MD},
       re("div",{style:{fontSize:20,fontWeight:900,color:AMB_DARK,marginBottom:4}},prodBase.prod.lbl||prodBase.prod.n),
@@ -2668,6 +2500,7 @@ function POSTichi(props){
     function addDelta(id,amt){deltas[id]=(deltas[id]||0)-amt;}
     orden.forEach(function(item){
       if(item.esEnvio||item.esDescuento)return;
+      if(item.productoCatalogoId){descontarRecetaNueva(item,props.productosNuevos,addDelta);return;}
       var receta=R_TICHI_PROD[item.recetaKey]||[];
       receta.forEach(function(r){addDelta(r.id,r.c);});
     });
@@ -2726,7 +2559,7 @@ function POSTichi(props){
 
   function ModalCobroTichi(props2){
     var total2=props2.total,onConf=props2.onConfirmar,onCl=props2.onClose,procesando2=props2.procesando;
-    var ms=useState({metodo:"",efectivo:"",montoML:"",terminalClip:""});var mv=ms[0];var mset=ms[1];
+    var ms=useState({metodo:props2.metodoInicial||"",efectivo:"",montoML:"",terminalClip:""});var mv=ms[0];var mset=ms[1];
     function mupdL(k,val){mset(function(p){var n={};for(var x in p)n[x]=p[x];n[k]=val;return n;});}
     var clip2=Math.round(total2*CLIP_RATE*100)/100,neto2=Math.round((total2-clip2)*100)/100;
     var efNum=parseFloat(mv.efectivo),efOk=mv.efectivo&&!isNaN(efNum)&&efNum>=total2;
@@ -2777,78 +2610,25 @@ function POSTichi(props){
     ));
   }
 
-  return re("div",{style:{padding:"10px 10px 70px"}},
-    exito?re("div",{style:{position:"fixed",top:80,left:"50%",transform:"translateX(-50%)",background:TC.dark,color:"#fff",padding:"12px 28px",borderRadius:50,fontWeight:800,fontSize:16,zIndex:300,whiteSpace:"nowrap"}},"Venta registrada"):null,
-    
-    re("div",{style:{display:"flex",gap:8,marginBottom:14}},
-      re("button",{onClick:function(){setModalDesc(true);},style:{flex:1,padding:12,background:C.purpleL,color:C.dark,border:"2px solid "+C.purple,borderRadius:12,fontWeight:800,fontSize:13,cursor:"pointer"}},"Descuento"),
-      re("button",{onClick:function(){setModalGasto(true);},style:{flex:1,padding:12,background:C.redL,color:C.red,border:"2px solid "+C.red,borderRadius:12,fontWeight:800,fontSize:13,cursor:"pointer"}},"+ Gasto")
-    ),
-    re("div",{style:{background:"#fff",borderRadius:14,padding:16,marginBottom:14,boxShadow:"0 1px 6px rgba(0,0,0,.09)"}},
-      renderCategoria(MENU_TICHI_SODAS,"Jarabes para Soda"),
-      renderCategoria(MENU_TICHI_CAFE,"Jarabes para Cafe"),
-      renderCategoria(MENU_TICHI_BASES,"Bases y Chocolate")
-    ),
-    orden.length>0?re("div",{style:{background:"#fff",borderRadius:14,padding:16,marginBottom:14,boxShadow:"0 1px 6px rgba(0,0,0,.09)"}},
-      re("div",{style:SC},"Pedido actual"),
-      orden.map(function(item,i){
-        return re("div",{key:item.id,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:i<orden.length-1?"1px solid #f5f5f5":"none"}},
-          re("div",{style:{flex:1}},
-            re("div",{style:{fontSize:14,fontWeight:600,color:item.esEnvio?"#1565C0":item.esDescuento?C.purple:TC.dark}},item.nombre),
-            item.esEnvio?re("div",{style:{fontSize:10,color:"#1565C0",fontWeight:600}},"ENVIO"):null,
-            item.esDescuento?re("div",{style:{fontSize:10,color:C.purple,fontWeight:600}},"DESCUENTO"):null
-          ),
-          re("div",{style:{display:"flex",alignItems:"center",gap:8}},
-            re("div",{style:{fontSize:14,fontWeight:700,color:item.precio<0?C.purple:TC.accent}},item.precio<0?"-"+fmt(Math.abs(item.precio)):fmt(item.precio)),
-            re("button",{onClick:function(){var idx=i;setOrden(function(p){return p.filter(function(_,j){return j!==idx;});});},style:{background:C.redL,border:"none",color:C.red,borderRadius:6,padding:"3px 8px",cursor:"pointer",fontSize:12,fontWeight:700}},"X")
-          )
-        );
-      }),
-      re("div",{style:{display:"flex",gap:8,marginTop:10}},
-        re("button",{onClick:function(){setModalEnvio(true);},style:{flex:1,padding:"10px",background:"#E3F2FD",color:"#1565C0",border:"2px solid #1565C0",borderRadius:10,fontWeight:700,fontSize:12,cursor:"pointer"}},"+ Agregar envio"),
-        re("div",{style:{flex:2,display:"flex",justifyContent:"space-between",alignItems:"center",paddingLeft:12}},
-          re("span",{style:{fontSize:16,fontWeight:800,color:TC.dark}},"Total"),
-          re("span",{style:{fontSize:20,fontWeight:900,color:TC.accent}},fmt(totalDisplay))
-        )
-      ),
-      re("button",{onClick:function(){setModalCobro(true);},style:{width:"100%",marginTop:10,padding:15,background:TC.dark,color:"#fff",border:"none",borderRadius:12,fontWeight:900,fontSize:17,cursor:"pointer"}},"Cobrar "+fmt(totalDisplay))
-    ):null,
-    verCorte?re("div",{style:{background:TC.dark,borderRadius:16,padding:18,color:"#fff",marginTop:14}},
-      re("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
-        re("div",{style:{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:.5,opacity:.6}},"Corte del dia"),
-        re("button",{onClick:function(){setVerCorte(false);},style:{background:"rgba(255,255,255,.15)",border:"none",color:"#fff",borderRadius:8,padding:"4px 10px",fontSize:11,cursor:"pointer"}},"Ocultar")
-      ),
-      re("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:12}},
-        re("button",{onClick:function(){var d=new Date(fechaCorte+"T12:00:00");d.setDate(d.getDate()-1);setFechaCorte(d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2));},style:{background:"rgba(255,255,255,.15)",border:"none",color:"#fff",borderRadius:8,padding:"6px 14px",fontSize:18,cursor:"pointer",fontWeight:800}},"‹"),
-        re("div",{style:{flex:1,textAlign:"center"}},
-          re("div",{style:{fontSize:12,color:"rgba(255,255,255,.9)",fontWeight:700}},fechaCorte===hoy()?"HOY - "+fechaCorte:new Date(fechaCorte+"T12:00:00").toLocaleDateString("es-MX",{weekday:"short",day:"2-digit",month:"short"})+" - "+fechaCorte)
-        ),
-        re("button",{onClick:function(){var d=new Date(fechaCorte+"T12:00:00");d.setDate(d.getDate()+1);var nd=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);if(nd<=hoy())setFechaCorte(nd);},disabled:fechaCorte>=hoy(),style:{background:fechaCorte>=hoy()?"rgba(255,255,255,.05)":"rgba(255,255,255,.15)",border:"none",color:fechaCorte>=hoy()?"rgba(255,255,255,.2)":"#fff",borderRadius:8,padding:"6px 14px",fontSize:18,cursor:fechaCorte>=hoy()?"default":"pointer",fontWeight:800}},"›")
-      ),
-      re("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}},
-        [["Ventas hoy",tv,"#a5d6a7"],["Efectivo en caja",efCaja,efCaja>=0?"#a5d6a7":"#ef9a9a"],["Transferencias",tTr,"#90caf9"],["Clip (neto)",tCl,"#ce93d8"]].map(function(x){
-          return re("div",{key:x[0],style:{background:"rgba(255,255,255,.08)",borderRadius:10,padding:"12px 14px"}},
-            re("div",{style:{fontSize:11,opacity:.65,marginBottom:3}},x[0]),
-            re("div",{style:{fontSize:17,fontWeight:900,color:x[2]}},fmt(x[1]))
-          );
-        })
-      ),
-      tML>0?re("div",{style:{background:"rgba(255,255,255,.08)",borderRadius:10,padding:"12px 14px",marginBottom:10}},
-        re("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}},
-          re("div",null,re("div",{style:{fontSize:11,opacity:.65}},"Mercado Libre (neto)"),re("div",{style:{fontSize:17,fontWeight:900,color:"#FFF176"}},fmt(tMLNeto))),
-          tMLPorPagar>0?re("div",{style:{background:"rgba(255,196,7,.2)",borderRadius:8,padding:"4px 10px",fontSize:11,color:"#FFC107",fontWeight:700}},"Por pagar: "+fmt(tMLPorPagar)):re("div",{style:{fontSize:11,color:"#a5d6a7",fontWeight:600}},"Todo cobrado")
-        ),
-        tMLComision>0?re("div",{style:{fontSize:11,opacity:.6}},"Comision ML: -"+fmt(tMLComision)):null
-      ):null,
-      gastosCajaHoy.length>0?re("div",{style:{borderTop:"1px solid rgba(255,255,255,.1)",paddingTop:12}},
-        re("div",{style:{fontSize:11,opacity:.5,marginBottom:8,textTransform:"uppercase"}},"Gastos hoy"),
-        gastosCajaHoy.map(function(g,i){
-          var desc=g.tipo==="operativo"?"Operativo: "+(g.desc||""):g.tipo==="colaborador"?"Colab: "+(g.desc||""):"Otro: "+(g.desc||"");
-          return re("div",{key:i,style:{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:4}},re("span",{style:{opacity:.75}},desc),re("span",{style:{color:"#ef9a9a"}},fmt(g.monto)));
-        })
-      ):null,
-      ventasHoy.length===0&&gastosCajaHoy.length===0?re("div",{style:{textAlign:"center",opacity:.35,fontSize:13}},"Sin movimientos hoy"):null
-    ):re("button",{onClick:function(){if(isAdmin())setVerCorte(true);else window.alert("El corte requiere administrador.");},style:{width:"100%",padding:"14px",background:TC.dark,color:"#fff",border:"none",borderRadius:14,fontWeight:700,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}},re("span",null,"🔒"),re("span",null,"Ver corte del dia")),
+  var gruposTichi=grupoMenuTichi().concat([grupoCustom(props.productosNuevos)]);
+  var methodTichi=React.useState('');var metodoTichi=methodTichi[0];var setMetodoTichi=methodTichi[1];
+  return re('div',null,
+    re(POSUnificado,{
+      marca:'tichi',tiendaNombre:'Tichi insumos',grupos:gruposTichi,soloNuevos:props.soloNuevos,
+      orden:orden,setOrden:setOrden,exito:exito,procesando:procesando,ventasPeriodo:tv,efectivoPeriodo:efCaja,
+      fechaCorte:fechaCorte,onCambiarFechaCorte:setFechaCorte,mostrarCorte:verCorte,
+      onAlternarCorte:function(){if(isAdmin())setVerCorte(function(v){return !v;});else window.alert('El corte requiere administrador.');},
+      datosCorte:[['Ventas',tv],['Transferencias',tTr],['Clip neto',tCl],['Mercado Libre neto',tMLNeto],['Mercado Libre pendiente',tMLPorPagar]],
+      alertas:alertas.concat(agotados),
+      onSeleccionar:function(p){
+        if(p.__custom){agregarItem(productoCatalogado(p.raw));return;}
+        abrirProducto(p.raw);
+      },
+      onDescuento:function(){setModalDesc(true);},
+      onGasto:function(){setModalGasto(true);},
+      onEnvio:function(){setModalEnvio(true);},
+      onCobrar:function(m){setMetodoTichi(m);setModalCobro(true);}
+    }),
     modalEnvio?re("div",{style:OV},re("div",{style:MD},
       re("div",{style:{fontSize:18,fontWeight:900,color:TC.dark,marginBottom:4}},"Agregar envio"),
       re("div",{style:{fontSize:12,color:"#888",marginBottom:14}},"Se suma al total y se registra como gasto operativo."),
@@ -2859,7 +2639,7 @@ function POSTichi(props){
       )
     )):null,
     modalPinCorte?re(ModalPin,{onAcceso:function(){setVerCorte(true);setModalPinCorte(false);},onClose:function(){setModalPinCorte(false);}}):null,
-    modalCobro?re(ModalCobroTichi,{total:totalDisplay,onConfirmar:confirmarCobro,onClose:function(){setModalCobro(false);},procesando:procesando}):null,
+    modalCobro?re(ModalCobroTichi,{total:totalDisplay,metodoInicial:metodoTichi,onConfirmar:confirmarCobro,onClose:function(){setModalCobro(false);},procesando:procesando}):null,
     modalGasto?re(ModalGasto,{insumos:insumos,onGuardar:confirmarGasto,onClose:function(){setModalGasto(false);}}):null,
     modalDesc?re(ModalDescuento,{onAdd:agregarItem,onClose:function(){setModalDesc(false);}}):null
   );
@@ -3502,7 +3282,7 @@ export default function App(){
         ),
         re("div",{className:"pos-navigation",style:{padding:"6px 14px 0"}},
           ([["pos","Vender"],["pedidos","Pedidos"],["inventario","Inventario"+(alertCount>0?" !":"")]]
-            .concat(tid==='centro'||tid==='sanantonio'?[]:[["nuevos","Productos nuevos"]])
+            
             .concat(isAdmin()?[["catalogo","Productos y recetas"]]:[])).map(function(x){
             var id=x[0],lbl=x[1],sel=seccion===id&&vista==="tienda";
             return re("button",{key:id,onClick:function(){irSec(id);},style:{padding:"7px 10px",border:"none",cursor:"pointer",background:sel?"#fff":"transparent",color:sel?(tid==="amburger"?"#1a237e":tid==="tichi"?TC.dark:C.dark):"rgba(255,255,255,.85)",fontWeight:sel?800:500,fontSize:13,borderRadius:"8px 8px 0 0",whiteSpace:"nowrap"}},
@@ -3513,9 +3293,9 @@ export default function App(){
       )
     ),
     re("div",{className:"pos-page-container"},
-      seccion==="pos"?tid==="tichi"?re(POSTichi,{tiendaId:tid,insumos:ins,setInsumos:setIns,onVenta:function(v,deltas){return addVenta(Object.assign(v,{tienda:tid}),deltas);},onGasto:function(g){return addGasto(Object.assign(g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):tid==="amburger"?re(POSAmburger,{tiendaId:tid,insumos:ins,setInsumos:setIns,onVenta:function(v,deltas){return addVenta(Object.assign(v,{tienda:tid}),deltas);},onGasto:function(g){return addGasto(Object.assign(g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):re(POS,{tiendaId:tid,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:function(v,deltas){return addVenta(Object.assign(v,{tienda:tid}),deltas);},onGasto:function(g){return addGasto(Object.assign(g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):null,
+      seccion==="pos"?tid==="tichi"?re(POSTichi,{tiendaId:tid,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:function(v,deltas){return addVenta(Object.assign(v,{tienda:tid}),deltas);},onGasto:function(g){return addGasto(Object.assign(g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):tid==="amburger"?re(POSAmburger,{tiendaId:tid,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:function(v,deltas){return addVenta(Object.assign(v,{tienda:tid}),deltas);},onGasto:function(g){return addGasto(Object.assign(g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):re(POS,{tiendaId:tid,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:function(v,deltas){return addVenta(Object.assign(v,{tienda:tid}),deltas);},onGasto:function(g){return addGasto(Object.assign(g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):null,
       seccion==='catalogo'&&isAdmin()?re(Catalogo,{tienda:tid,insumos:ins,productos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),onRefresh:actualizarCatalogo}):null,
-      seccion==='nuevos'?re(POS,{tiendaId:tid,soloNuevos:true,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:function(v,deltas){return addVenta(Object.assign(v,{tienda:tid}),deltas);},onGasto:function(g){return addGasto(Object.assign(g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):null,
+      seccion==='nuevos'?tid==='tichi'?re(POSTichi,{tiendaId:tid,soloNuevos:true,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:addVenta,onGasto:addGasto,ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):tid==='amburger'?re(POSAmburger,{tiendaId:tid,soloNuevos:true,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:addVenta,onGasto:addGasto,ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):re(POS,{tiendaId:tid,soloNuevos:true,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:addVenta,onGasto:addGasto,ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):null,
       seccion==="pedidos"?tid==="tichi"?re(PedidosTichi,{ventas:ventas.filter(function(v){return v.tienda===tid;}),tiendaId:tid,
               onActualizarPago:async function(ts){try{await updateEstadoPago([ts]);setVentas(function(p){return p.map(function(v){return v.timestamp===ts?Object.assign({},v,{estadoPago:'pagado'}):v;});});}catch(e){window.alert(e.message);}},
               onReembolso:reembolsarVenta}):re(Pedidos,{ventas:ventas.filter(function(v){return v.tienda===tid;}),tiendaId:tid,
