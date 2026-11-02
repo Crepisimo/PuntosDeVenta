@@ -1230,7 +1230,7 @@ function POS(props){
   var s11=useState(false);var modalEmpleado=s11[0];var setModalEmpleado=s11[1];
   var s12=useState(false);var verCorte=s12[0];var setVerCorte=s12[1];
   var s13=useState(false);var modalPinCorte=s13[0];var setModalPinCorte=s13[1];
-  var s14=useFechaCajaSeleccionada();var fechaCorte=s14[0];var setFechaCorte=s14[1];
+  var s14=useFechaCajaSeleccionada();var fechaCorte=props.fechaVista||s14[0];var setFechaCorte=props.onFechaVista||s14[1];
   var s15=useState('');var busqueda=s15[0];var setBusqueda=s15[1];
   var s17=useState('');var metodoCobroInicial=s17[0];var setMetodoCobroInicial=s17[1];
   var s18=useState('');var filtroPersonalizado=s18[0];var setFiltroPersonalizado=s18[1];
@@ -1436,7 +1436,7 @@ function Pedidos(props){
   var s4=useState("");var montoDidiInput=s4[0];var setMontoDidiInput=s4[1];
   var s5=useState(false);var modalPinR=s5[0];var setModalPinR=s5[1];
   var s6=useState(null);var ventaR=s6[0];var setVentaR=s6[1];
-  var s7=useState(hoy());var fechaSel=s7[0];var setFechaSel=s7[1];
+  var s7=useState(hoy());var fechaSel=props.fechaVista||s7[0];var setFechaSel=props.onFechaVista||s7[1];
   var montoDidiNum=parseFloat(montoDidiInput)||0;
 
   // Filter ventas by selected date (not just today)
@@ -1472,8 +1472,8 @@ function Pedidos(props){
 
   // Navigate days
   function cambiarDia(delta){
-    var d=new Date(fechaSel+"T12:00:00");
-    d.setDate(d.getDate()+delta);
+    var d=new Date(fechaSel+"T12:00:00Z");
+    d.setUTCDate(d.getUTCDate()+delta);
     setFechaSel(d.toISOString().split("T")[0]);
   }
 
@@ -2354,7 +2354,7 @@ function POSAmburger(props){
   var s8=useState(false);var exito=s8[0];var setExito=s8[1];
   var s9vc=useState(false);var verCorte=s9vc[0];var setVerCorte=s9vc[1];
   var s9pc=useState(false);var modalPinCorte=s9pc[0];var setModalPinCorte=s9pc[1];
-  var s9fc=useFechaCajaSeleccionada();var fechaCorte=s9fc[0];var setFechaCorte=s9fc[1];
+  var s9fc=useFechaCajaSeleccionada();var fechaCorte=props.fechaVista||s9fc[0];var setFechaCorte=props.onFechaVista||s9fc[1];
   var s9=useState(false);var modalExtras=s9[0];var setModalExtras=s9[1];
   var s10=useState(null);var prodBase=s10[0];var setProdBase=s10[1];
 
@@ -2490,7 +2490,7 @@ function POSTichi(props){
   var s6=useState(false);var exito=s6[0];var setExito=s6[1];
   var s7c=useState(false);var verCorte=s7c[0];var setVerCorte=s7c[1];
   var s8c=useState(false);var modalPinCorte=s8c[0];var setModalPinCorte=s8c[1];
-  var s9fc=useFechaCajaSeleccionada();var fechaCorte=s9fc[0];var setFechaCorte=s9fc[1];
+  var s9fc=useFechaCajaSeleccionada();var fechaCorte=props.fechaVista||s9fc[0];var setFechaCorte=props.onFechaVista||s9fc[1];
   var s7=useState("");var envioMonto=s7[0];var setEnvioMonto=s7[1];
 
   var total=orden.reduce(function(s,i){return s+i.precio;},0);
@@ -2667,15 +2667,15 @@ function PedidosTichi(props){
   var s1=useState(null);var sel=s1[0];var setSel=s1[1];
   var s2=useState(false);var modalPinR=s2[0];var setModalPinR=s2[1];
   var s3=useState(null);var ventaR=s3[0];var setVentaR=s3[1];
-  var s4=useState(hoy());var fechaSel=s4[0];var setFechaSel=s4[1];
+  var s4=useState(hoy());var fechaSel=props.fechaVista||s4[0];var setFechaSel=props.onFechaVista||s4[1];
 
   var ventasDia=ventasDeFecha(ventas,tiendaId,fechaSel,{incluirReembolsadas:true});
   var ventasDiaActivas=ventasDia.filter(function(v){return v.estadoPago!=="reembolsado";});
   var porPagar=ventasDiaActivas.filter(function(v){return v.estadoPago==="por_pagar";});
 
   function cambiarDia(delta){
-    var d=new Date(fechaSel+"T12:00:00");
-    d.setDate(d.getDate()+delta);
+    var d=new Date(fechaSel+"T12:00:00Z");
+    d.setUTCDate(d.getUTCDate()+delta);
     setFechaSel(d.toISOString().split("T")[0]);
   }
 
@@ -3089,10 +3089,21 @@ async function updateVentaById(dbId,data){
 async function sbRpc(fn,params){return rpc(fn,params);}
 async function readStock(){return await sbGet('inventario','select=*')||[];}
 
+async function sbPaginado(table){
+  var rows=[],tamano=500,offset=0;
+  for(;;){
+    var pagina=await sbGet(table,'select=*&order=timestamp.desc&limit='+tamano+'&offset='+offset)||[];
+    rows=rows.concat(pagina);
+    if(pagina.length<tamano)break;
+    offset+=tamano;
+    if(offset>100000)throw new Error('Demasiados movimientos; consulte soporte antes de calcular un reporte incompleto');
+  }
+  return rows;
+}
 async function loadFromSupabase(){
   try{
-    var ventas=await sbGet("ventas","select=*&order=timestamp.desc&limit=10000")||[];
-    var gastos=await sbGet("gastos","select=*&order=timestamp.desc&limit=10000")||[];
+    var ventas=await sbPaginado("ventas");
+    var gastos=await sbPaginado("gastos");
     var inventario=await sbGet("inventario","select=*")||[];
     var ventasApp=ventas.map(function(v){return {_dbId:v.id,timestamp:v.timestamp,tienda:v.tienda,total:v.total,metodo:v.metodo,items:v.items||[],comisionClip:v.comision_clip||0,netoRecibido:v.neto_recibido??v.total,comisionDidi:v.comision_didi||0,comisionML:v.comision_ml||0,cambio:v.cambio||0,estadoPago:v.estado_pago||"pagado",terminalClip:v.terminal_clip||""};});
     var gastosApp=gastos.map(function(g){return {_dbId:g.id,timestamp:g.timestamp,tienda:g.tienda,seccion:g.seccion,tipo:g.tipo,monto:g.monto,desc:g.desc_gasto||"",insumoId:g.insumo_id||"",insumoNombre:g.insumo_nombre||"",cantidad:g.cantidad||0,unidad:g.unidad||"",metodoPago:g.metodo_pago||""};});
@@ -3163,6 +3174,8 @@ export default function App(){
       actualizarCatalogo().finally(function(){setCargando(false);});
     });
   },[]);
+  // Una sola fecha para Vender, Pedidos y Corte dentro de la sucursal.
+  var fechaVistaState=useFechaCajaSeleccionada();var fechaVista=fechaVistaState[0];var setFechaVista=fechaVistaState[1];
   var sVist=useState("selector");var vista=sVist[0];var setVista=sVist[1];
   var sTid=useState(null);var tiendaId=sTid[0];var setTiendaId=sTid[1];
   var sSec=useState("pos");var seccion=sSec[0];var setSeccion=sSec[1];
@@ -3170,6 +3183,19 @@ export default function App(){
   var sPinOk=useState(false);var pinOk=sPinOk[0];var setPinOk=sPinOk[1];
   var sPending=useState("inventario");var pendingSeccion=sPending[0];var setPendingSeccion=sPending[1];
 
+  var sUltima=useState(null);var ultimaActualizacion=sUltima[0];var setUltimaActualizacion=sUltima[1];
+  var sRefrescando=useState(false);var refrescando=sRefrescando[0];var setRefrescando=sRefrescando[1];
+  async function refrescarMovimientos(){
+    if(refrescando)return;
+    setRefrescando(true);
+    try{
+      var [ventasDb,gastosDb]=await Promise.all([sbPaginado('ventas'),sbPaginado('gastos')]);
+      setVentas(ventasDb.map(function(v){return {_dbId:v.id,timestamp:v.timestamp,tienda:v.tienda,total:v.total,metodo:v.metodo,items:v.items||[],comisionClip:v.comision_clip||0,netoRecibido:v.neto_recibido??v.total,comisionDidi:v.comision_didi||0,comisionML:v.comision_ml||0,cambio:v.cambio||0,estadoPago:v.estado_pago||'pagado',terminalClip:v.terminal_clip||''};}));
+      setGastos(gastosDb.map(function(g){return {_dbId:g.id,timestamp:g.timestamp,tienda:g.tienda,seccion:g.seccion,tipo:g.tipo,monto:g.monto,desc:g.desc_gasto||'',insumoId:g.insumo_id||'',insumoNombre:g.insumo_nombre||'',cantidad:g.cantidad||0,unidad:g.unidad||'',metodoPago:g.metodo_pago||''};}));
+      setUltimaActualizacion(new Date());
+    }catch(e){window.alert('No se pudieron actualizar los movimientos: '+e.message);}
+    finally{setRefrescando(false);}
+  }
   // Save inventario to Supabase when it changes (debounced)
   // Stock saved via delta updates (multi-device safe)
 
@@ -3310,13 +3336,21 @@ export default function App(){
         )
       )
     ),
+    re("div",{className:"pos-fecha-unica"},
+      re("strong",null,"Fecha de consulta para Pedidos y Corte:"),
+      re("input",{type:"date",value:fechaVista,max:hoy(),onChange:function(e){if(e.target.value)setFechaVista(e.target.value);},"aria-label":"Fecha única de consulta"}),
+      re("button",{type:"button",onClick:refrescarMovimientos,disabled:refrescando},refrescando?"Actualizando...":"↻ Actualizar ventas"),
+      re("button",{type:"button",onClick:function(){setFechaVista(hoy());}},"Hoy"),
+      re("button",{type:"button",onClick:function(){var x=new Date(hoy()+"T12:00:00Z");x.setUTCDate(x.getUTCDate()-1);setFechaVista(x.toISOString().slice(0,10));}},"Ayer"),
+      re("small",null,"Los cobros nuevos se registran con su hora real. Esta fecha solo cambia qué movimientos consultas.")
+    ),
     re("div",{className:"pos-page-container"},
-      seccion==="pos"?tid==="tichi"?re(POSTichi,{tiendaId:tid,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:function(v,deltas){return addVenta(Object.assign(v,{tienda:tid}),deltas);},onGasto:function(g){return addGasto(Object.assign(g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):tid==="amburger"?re(POSAmburger,{tiendaId:tid,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:function(v,deltas){return addVenta(Object.assign(v,{tienda:tid}),deltas);},onGasto:function(g){return addGasto(Object.assign(g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):re(POS,{tiendaId:tid,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:function(v,deltas){return addVenta(Object.assign(v,{tienda:tid}),deltas);},onGasto:function(g){return addGasto(Object.assign(g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):null,
+      seccion==="pos"?tid==="tichi"?re(POSTichi,{tiendaId:tid,fechaVista:fechaVista,onFechaVista:setFechaVista,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:function(v,deltas){return addVenta(Object.assign(v,{tienda:tid}),deltas);},onGasto:function(g){return addGasto(Object.assign(g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):tid==="amburger"?re(POSAmburger,{tiendaId:tid,fechaVista:fechaVista,onFechaVista:setFechaVista,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:function(v,deltas){return addVenta(Object.assign(v,{tienda:tid}),deltas);},onGasto:function(g){return addGasto(Object.assign(g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):re(POS,{tiendaId:tid,fechaVista:fechaVista,onFechaVista:setFechaVista,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:function(v,deltas){return addVenta(Object.assign(v,{tienda:tid}),deltas);},onGasto:function(g){return addGasto(Object.assign(g,{tienda:tid}));},ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):null,
       seccion==='catalogo'&&isAdmin()?re(Catalogo,{tienda:tid,insumos:ins,productos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),onRefresh:actualizarCatalogo}):null,
-      seccion==='nuevos'?tid==='tichi'?re(POSTichi,{tiendaId:tid,soloNuevos:true,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:addVenta,onGasto:addGasto,ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):tid==='amburger'?re(POSAmburger,{tiendaId:tid,soloNuevos:true,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:addVenta,onGasto:addGasto,ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):re(POS,{tiendaId:tid,soloNuevos:true,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:addVenta,onGasto:addGasto,ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):null,
-      seccion==="pedidos"?tid==="tichi"?re(PedidosTichi,{ventas:ventas.filter(function(v){return v.tienda===tid;}),tiendaId:tid,
+      seccion==='nuevos'?tid==='tichi'?re(POSTichi,{tiendaId:tid,fechaVista:fechaVista,onFechaVista:setFechaVista,soloNuevos:true,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:addVenta,onGasto:addGasto,ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):tid==='amburger'?re(POSAmburger,{tiendaId:tid,fechaVista:fechaVista,onFechaVista:setFechaVista,soloNuevos:true,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:addVenta,onGasto:addGasto,ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):re(POS,{tiendaId:tid,fechaVista:fechaVista,onFechaVista:setFechaVista,soloNuevos:true,productosNuevos:productosPersonalizados.filter(function(p){return p.tienda===tid;}),insumos:ins,setInsumos:setIns,onVenta:addVenta,onGasto:addGasto,ventas:ventas.filter(function(v){return v.tienda===tid;}),gastos:gastos.filter(function(g){return g.tienda===tid;})}):null,
+      seccion==="pedidos"?tid==="tichi"?re(PedidosTichi,{ventas:ventas.filter(function(v){return v.tienda===tid;}),tiendaId:tid,fechaVista:fechaVista,onFechaVista:setFechaVista,
               onActualizarPago:async function(ts){try{await updateEstadoPago([ts]);setVentas(function(p){return p.map(function(v){return v.timestamp===ts?Object.assign({},v,{estadoPago:'pagado'}):v;});});}catch(e){window.alert(e.message);}},
-              onReembolso:reembolsarVenta}):re(Pedidos,{ventas:ventas.filter(function(v){return v.tienda===tid;}),tiendaId:tid,
+              onReembolso:reembolsarVenta}):re(Pedidos,{ventas:ventas.filter(function(v){return v.tienda===tid;}),tiendaId:tid,fechaVista:fechaVista,onFechaVista:setFechaVista,
           onActualizarPago:async function(timestamps,tipo,montoReal,comision){try{await updateEstadoPago(timestamps);setVentas(function(p){return p.map(function(v){return timestamps.includes(v.timestamp)?Object.assign({},v,{estadoPago:'pagado'}):v;});});}catch(e){window.alert(e.message);}},
           onReembolso:reembolsarVenta
         }):null,

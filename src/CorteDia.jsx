@@ -37,6 +37,15 @@ export default function CorteDia({marca,tienda,fecha,onFecha,ventas,gastos,onCer
             r.movimientosSinMetodo>0&&e('p',{className:'corte-warning'},`${r.movimientosSinMetodo} movimiento(s) sin forma de pago. No se descuentan del efectivo hasta aclararlos.`)
           )
         ),
+        e('section',{className:'corte-panel'},
+          e('details',null,
+            e('summary',{style:{fontWeight:800,cursor:'pointer',color:'#173D77'}},`Ver ${r.ventas.length} venta(s) sumadas del ${fecha} · ${peso(r.ventasBrutas)}`),
+            r.ventas.length?e('div',{className:'corte-gastos'},r.ventas.map((v,i)=>e('div',{className:'corte-gasto',key:v._dbId||v.timestamp+'-'+i},
+              e('div',null,e('strong',null,`${v.metodo||'Sin método'} · ${fechaHora(v.timestamp)}`),e('small',null,(v.items||[]).map(it=>it.nombre).slice(0,3).join(', ')||'Venta registrada')),
+              e('b',null,peso(v.total))
+            ))):e('p',{className:'corte-empty'},'Sin ventas para este día y sucursal.')
+          )
+        ),
         e('section',{className:'corte-panel'},e('div',{className:'corte-section-head'},e('h3',null,'Detalle de cada gasto'),e('button',{type:'button',onClick:descargarCsv,disabled:r.gastos.length===0},'Exportar CSV')),
           r.gastos.length?e('div',{className:'corte-gastos'},r.gastos.slice().sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp)).map((g,i)=>e('div',{className:'corte-gasto',key:g._dbId||i},
             e('div',null,e('strong',null,etiquetaGasto(g)),e('small',null,`${fechaHora(g.timestamp)} · ${etiquetaMedio(metodoGasto(g))}`)),e('b',null,peso(g.monto))
