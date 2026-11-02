@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
-import {resumenCaja,metodoGasto,etiquetaGasto,ZONA_CAJA,fechaCaja} from './corteCaja.mjs';
+import {resumenCaja,metodoGasto,etiquetaGasto,fechaCaja,horaCaja,fechaHoraCaja} from './corteCaja.mjs';
 import './corteDia.css';
 const e=React.createElement;
 const peso=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(Number(n)||0);
-const fechaHora=ts=>{try{return new Intl.DateTimeFormat('es-MX',{timeZone:ZONA_CAJA,hour:'2-digit',minute:'2-digit'}).format(new Date(ts));}catch{return '--:--';}};
+const fechaHora=horaCaja;
 const etiquetaMedio=m=>({efectivo:'Efectivo',tarjeta:'Tarjeta',transferencia:'Transferencia',sin_especificar:'Sin especificar',otro:'Otro medio'})[m]||m;
 export default function CorteDia({marca,tienda,fecha,onFecha,ventas,gastos,onCerrar}){
   const [fondo,setFondo]=useState('');
@@ -41,7 +41,7 @@ export default function CorteDia({marca,tienda,fecha,onFecha,ventas,gastos,onCer
           e('details',null,
             e('summary',{style:{fontWeight:800,cursor:'pointer',color:'#173D77'}},`Ver ${r.ventas.length} venta(s) sumadas del ${fecha} · ${peso(r.ventasBrutas)}`),
             r.ventas.length?e('div',{className:'corte-gastos'},r.ventas.map((v,i)=>e('div',{className:'corte-gasto',key:v._dbId||v.timestamp+'-'+i},
-              e('div',null,e('strong',null,`${v.metodo||'Sin método'} · ${fechaHora(v.timestamp)}`),e('small',null,(v.items||[]).map(it=>it.nombre).slice(0,3).join(', ')||'Venta registrada')),
+              e('div',null,e('strong',null,`${fechaHoraCaja(v.timestamp)} · ${v.metodo||'Sin método'}`),e('small',null,(v.items||[]).map(it=>it.nombre).slice(0,3).join(', ')||'Venta registrada')),
               e('b',null,peso(v.total))
             ))):e('p',{className:'corte-empty'},'Sin ventas para este día y sucursal.')
           )

@@ -3,7 +3,7 @@ import {apiFetch, rpc, freshId, getCurrentStaff, isAdmin} from "./secureClient.j
 import React, { useState } from "react";
 import POSUnificado from "./POSUnificado.jsx";
 import Catalogo from "./Catalogo.jsx";
-import {fechaCaja, resumenCaja, ventasDeFecha, siguienteFechaAutomatica} from "./corteCaja.mjs";
+import {fechaCaja, fechaHoraCaja, resumenCaja, ventasDeFecha, siguienteFechaAutomatica} from "./corteCaja.mjs";
 
 var CLIP_RATE = 0.04176;
 var VEGETAL_EXTRA = 20;
@@ -12,7 +12,7 @@ var META_MP = 0.32;
 
 function fmt(n){return new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"}).format(n||0);}
 function fmtC(n,u){return parseFloat(Number(n).toFixed(2))+" "+u;}
-function fmtFecha(ts){var d=new Date(ts);return d.toLocaleDateString("es-MX",{day:"2-digit",month:"short"})+" "+d.toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"});}
+function fmtFecha(ts){return fechaHoraCaja(ts);}
 function hoy(){
   return fechaCaja(new Date());
 }
@@ -1874,21 +1874,24 @@ function Finanzas(props){
     ventasPorDia[d]+=v.total;
   });
   var dias7=[];
+  // Las etiquetas se construyen desde fechas CALENDARIO de Oaxaca, no desde UTC.
+  var hoyOaxaca=fechaCaja(new Date());
   for(var i=6;i>=0;i--){
-    var d=new Date();d.setDate(d.getDate()-i);
-    var ds=d.toISOString().split("T")[0];
-    var lbl=d.toLocaleDateString("es-MX",{weekday:"short",day:"2-digit"});
+    var d=new Date(hoyOaxaca+"T12:00:00Z");
+    d.setUTCDate(d.getUTCDate()-i);
+    var ds=d.toISOString().slice(0,10);
+    var lbl=d.toLocaleDateString("es-MX",{timeZone:"UTC",weekday:"short",day:"2-digit"});
     dias7.push({l:lbl,v:Math.round(ventasPorDia[ds]||0)});
   }
 
-  // Ventas por semana (ultimas 4)
+  // Las semanas se asignan a partir del día de caja de Oaxaca.
   var ventasPorSemana={};
   ventas.forEach(function(v){
-    if(!v.timestamp)return;
-    var d=new Date(v.timestamp);
-    var startOfWeek=new Date(d);
-    startOfWeek.setDate(d.getDate()-d.getDay());
-    var wk=startOfWeek.toISOString().split("T")[0];
+    var dia=fechaCaja(v.timestamp);
+    if(!dia)return;
+    var d=new Date(dia+"T12:00:00Z");
+    d.setUTCDate(d.getUTCDate()-d.getUTCDay());
+    var wk=d.toISOString().slice(0,10);
     if(!ventasPorSemana[wk])ventasPorSemana[wk]=0;
     ventasPorSemana[wk]+=v.total;
   });
@@ -1899,9 +1902,9 @@ function Finanzas(props){
   // Ventas por mes (ultimos 6)
   var ventasPorMes={};
   ventas.forEach(function(v){
-    if(!v.timestamp)return;
-    var d=new Date(v.timestamp);
-    var mes=d.getFullYear()+"-"+(d.getMonth()+1<10?"0":"")+(d.getMonth()+1);
+    var dia=fechaCaja(v.timestamp);
+    if(!dia)return;
+    var mes=dia.slice(0,7);
     if(!ventasPorMes[mes])ventasPorMes[mes]=0;
     ventasPorMes[mes]+=v.total;
   });
