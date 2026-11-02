@@ -1,0 +1,28 @@
+ACTUALIZACION PUNTUAL · POS 3 MARCAS · 02 NOV 2026
+
+PROBLEMA: las sumatorias podían quedar en el día anterior al mantener la tablet
+abierta durante medianoche, y el historial de Pedidos y los resúmenes tenían
+métodos de filtro de fechas independientes.
+
+CORRECCIONES:
+- Misma selección de ventas para Pedidos, caja y tarjeta de resumen.
+- Horario de operación: America/Mexico_City (Oaxaca).
+- La fecha del POS avanza automáticamente al nuevo día si estaba mostrando el
+día actual; si se eligió un día anterior, lo respeta.
+- El total del panel lateral muestra explícitamente la fecha consultada.
+- Los reembolsos siguen visibles en el historial, pero NO se suman como ventas
+vigentes.
+- La lógica de inventario, cobro, impresión y base de datos no se modificó.
+
+INSTALACION:
+1. Respaldar repositorio actual.
+2. Subir el contenido de este ZIP a una RAMA DE PRUEBAS del proyecto POS.
+3. Verificar Vercel Ready.
+4. Comprobar Centro, San Antonio, AM-Burgers y Tichi comparando total de Pedidos
+   vigentes y corte con el mismo día seleccionado.
+5. Publicar en producción solo tras validar con los datos reales.
+
+No ejecutar SQL.
+No modifica ventas o gastos existentes en Supabase.
+No se pudo validar compilación final de Vite/producción desde este entorno;
+se pasaron verificaciones de sintaxis y pruebas de cálculo simuladas.

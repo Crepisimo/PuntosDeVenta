@@ -7,8 +7,13 @@ context.imprimirTicket=()=>{};context.React={
 context.useState=context.React.useState;context.useMemo=context.React.useMemo;
 context.apiFetch=async()=>[];context.rpc=async()=>{};context.freshId=()=>Math.random().toString();context.getCurrentStaff=()=>({nombre:'Cajero'});context.isAdmin=()=>true;
 vm.createContext(context);
+// Funciones de fecha reales compartidas con el POS (antes estaban omitidas en el mock).
+let fechaCore=fs.readFileSync('src/corteCaja.mjs','utf8').replace(/^export /gm,'');
+vm.runInContext(fechaCore,context,{filename:'corteCaja.mjs'});
 let main=fs.readFileSync('src/POSCrepismoTichiAMB.jsx','utf8').replace(/^import .*;\s*$/gm,'').replace('export default function App','function App');
 vm.runInContext(main,context,{filename:'POSCrepismoTichiAMB.jsx'});
+// Impresora simulada: la prueba revisa datos y no hardware Bluetooth.
+context.window.imprimirTicket=()=>{};
 let ui=fs.readFileSync('src/POSUnificado.jsx','utf8').replace(/^import .*;\s*$/gm,'').replace('export default function POSUnificado','function POSUnificado');
 vm.runInContext(ui,context,{filename:'POSUnificado.jsx'});
 const c=context;

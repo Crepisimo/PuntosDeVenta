@@ -3,7 +3,7 @@ import {apiFetch, rpc, freshId, getCurrentStaff, isAdmin} from "./secureClient.j
 import React, { useState } from "react";
 import POSUnificado from "./POSUnificado.jsx";
 import Catalogo from "./Catalogo.jsx";
-import {fechaCaja, resumenCaja} from "./corteCaja.mjs";
+import {fechaCaja, resumenCaja, ventasDeFecha, siguienteFechaAutomatica} from "./corteCaja.mjs";
 
 var CLIP_RATE = 0.04176;
 var VEGETAL_EXTRA = 20;
@@ -15,6 +15,26 @@ function fmtC(n,u){return parseFloat(Number(n).toFixed(2))+" "+u;}
 function fmtFecha(ts){var d=new Date(ts);return d.toLocaleDateString("es-MX",{day:"2-digit",month:"short"})+" "+d.toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"});}
 function hoy(){
   return fechaCaja(new Date());
+}
+// Fecha de caja compartida por las tres marcas. No se queda en ayer si la tablet
+// permanece encendida al llegar a las 00:00 de America/Mexico_City.
+function useFechaCajaSeleccionada(){
+  var fechaState=useState(hoy());var fecha=fechaState[0],setFecha=fechaState[1];
+  var fechaActualRef=React.useRef(hoy());
+  React.useEffect(function(){
+    function revisarDia(){
+      var ahora=hoy();var anterior=fechaActualRef.current;
+      if(ahora!==anterior){
+        setFecha(function(seleccionada){return siguienteFechaAutomatica(anterior,seleccionada,ahora);});
+        fechaActualRef.current=ahora;
+      }
+    }
+    var timer=window.setInterval(revisarDia,15000);
+    window.addEventListener('focus',revisarDia);
+    document.addEventListener('visibilitychange',revisarDia);
+    return function(){window.clearInterval(timer);window.removeEventListener('focus',revisarDia);document.removeEventListener('visibilitychange',revisarDia);};
+  },[]);
+  return [fecha,setFecha];
 }
 function oz(n){return n*30;}
 function pp(n){return n*0.33*30;}
@@ -1210,7 +1230,7 @@ function POS(props){
   var s11=useState(false);var modalEmpleado=s11[0];var setModalEmpleado=s11[1];
   var s12=useState(false);var verCorte=s12[0];var setVerCorte=s12[1];
   var s13=useState(false);var modalPinCorte=s13[0];var setModalPinCorte=s13[1];
-  var s14=useState(hoy());var fechaCorte=s14[0];var setFechaCorte=s14[1];
+  var s14=useFechaCajaSeleccionada();var fechaCorte=s14[0];var setFechaCorte=s14[1];
   var s15=useState('');var busqueda=s15[0];var setBusqueda=s15[1];
   var s17=useState('');var metodoCobroInicial=s17[0];var setMetodoCobroInicial=s17[1];
   var s18=useState('');var filtroPersonalizado=s18[0];var setFiltroPersonalizado=s18[1];
@@ -1298,8 +1318,8 @@ function POS(props){
   }
 
   var _hoyStr=fechaCorte;
-  var ventasHoy=ventas.filter(function(v){return v.tienda===tiendaId&&v.timestamp&&fechaCaja(v.timestamp)===_hoyStr&&v.estadoPago!=='reembolsado';});
-  var tv=ventasHoy.reduce(function(s,v){return s+v.total;},0);
+  var ventasHoy=ventasDeFecha(ventas,tiendaId,fechaCorte);
+  var tv=resumenCaja(ventas,gastos,tiendaId,fechaCorte).ventasBrutas;
   var tEf=ventasHoy.filter(function(v){return v.metodo==='efectivo';}).reduce(function(s,v){return s+v.total;},0);
   var tTr=ventasHoy.filter(function(v){return v.metodo==='transferencia';}).reduce(function(s,v){return s+v.total;},0);
   var tCl=ventasHoy.filter(function(v){return v.metodo==='clip';}).reduce(function(s,v){return s+v.netoRecibido;},0);
@@ -1420,7 +1440,7 @@ function Pedidos(props){
   var montoDidiNum=parseFloat(montoDidiInput)||0;
 
   // Filter ventas by selected date (not just today)
-  var ventasDia=ventas.filter(function(v){return v.tienda===tiendaId&&v.timestamp&&(function(){var d=new Date(v.timestamp);var ld=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);return ld===fechaSel;})();});
+  var ventasDia=ventasDeFecha(ventas,tiendaId,fechaSel,{incluirReembolsadas:true});
   var ventasDiaActivas=ventasDia.filter(function(v){return v.estadoPago!=="reembolsado";});
 
   // Didi pending - all dates
@@ -1428,7 +1448,7 @@ function Pedidos(props){
   var totalDidiPendiente=didiPorPagar.reduce(function(s,v){return s+(v.netoRecibido??v.total);},0);
   var didiPorDia={};
   didiPorPagar.forEach(function(v){
-    var d=v.timestamp?v.timestamp.split("T")[0]:"";
+    var d=fechaCaja(v.timestamp);
     if(!didiPorDia[d])didiPorDia[d]={fecha:d,ventas:[],total:0,neto:0};
     didiPorDia[d].ventas.push(v);
     didiPorDia[d].total+=v.total;
@@ -1848,7 +1868,7 @@ function Finanzas(props){
   // Ventas por dia (ultimos 7 dias)
   var ventasPorDia={};
   ventas.forEach(function(v){
-    var d=v.timestamp?v.timestamp.split("T")[0]:"";
+    var d=fechaCaja(v.timestamp);
     if(!d)return;
     if(!ventasPorDia[d])ventasPorDia[d]=0;
     ventasPorDia[d]+=v.total;
@@ -2334,7 +2354,7 @@ function POSAmburger(props){
   var s8=useState(false);var exito=s8[0];var setExito=s8[1];
   var s9vc=useState(false);var verCorte=s9vc[0];var setVerCorte=s9vc[1];
   var s9pc=useState(false);var modalPinCorte=s9pc[0];var setModalPinCorte=s9pc[1];
-  var s9fc=useState(hoy());var fechaCorte=s9fc[0];var setFechaCorte=s9fc[1];
+  var s9fc=useFechaCajaSeleccionada();var fechaCorte=s9fc[0];var setFechaCorte=s9fc[1];
   var s9=useState(false);var modalExtras=s9[0];var setModalExtras=s9[1];
   var s10=useState(null);var prodBase=s10[0];var setProdBase=s10[1];
 
@@ -2382,9 +2402,9 @@ function POSAmburger(props){
   }
 
   var hoyStr=fechaCorte;
-  var ventasHoy=ventas.filter(function(v){return v.tienda===tiendaId&&v.timestamp&&fechaCaja(v.timestamp)===hoyStr&&v.estadoPago!=="reembolsado";});
+  var ventasHoy=ventasDeFecha(ventas,tiendaId,fechaCorte);
   var gastosCajaHoy=gastos.filter(function(g){return g.tienda===tiendaId&&g.seccion==="caja"&&g.timestamp&&fechaCaja(g.timestamp)===hoyStr;});
-  var tv=ventasHoy.reduce(function(s,v){return s+v.total;},0);
+  var tv=resumenCaja(ventas,gastos,tiendaId,fechaCorte).ventasBrutas;
   var tEf=ventasHoy.filter(function(v){return v.metodo==="efectivo";}).reduce(function(s,v){return s+v.total;},0);
   var tTr=ventasHoy.filter(function(v){return v.metodo==="transferencia";}).reduce(function(s,v){return s+v.total;},0);
   var tCl=ventasHoy.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.netoRecibido;},0);
@@ -2470,7 +2490,7 @@ function POSTichi(props){
   var s6=useState(false);var exito=s6[0];var setExito=s6[1];
   var s7c=useState(false);var verCorte=s7c[0];var setVerCorte=s7c[1];
   var s8c=useState(false);var modalPinCorte=s8c[0];var setModalPinCorte=s8c[1];
-  var s9fc=useState(hoy());var fechaCorte=s9fc[0];var setFechaCorte=s9fc[1];
+  var s9fc=useFechaCajaSeleccionada();var fechaCorte=s9fc[0];var setFechaCorte=s9fc[1];
   var s7=useState("");var envioMonto=s7[0];var setEnvioMonto=s7[1];
 
   var total=orden.reduce(function(s,i){return s+i.precio;},0);
@@ -2520,9 +2540,9 @@ function POSTichi(props){
   }
 
   var hoyStr=fechaCorte;
-  var ventasHoy=ventas.filter(function(v){return v.tienda===tiendaId&&v.timestamp&&fechaCaja(v.timestamp)===hoyStr&&v.estadoPago!=="reembolsado";});
+  var ventasHoy=ventasDeFecha(ventas,tiendaId,fechaCorte);
   var gastosCajaHoy=gastos.filter(function(g){return g.tienda===tiendaId&&g.seccion==="caja"&&g.timestamp&&fechaCaja(g.timestamp)===hoyStr;});
-  var tv=ventasHoy.reduce(function(s,v){return s+v.total;},0);
+  var tv=resumenCaja(ventas,gastos,tiendaId,fechaCorte).ventasBrutas;
   var tEf=ventasHoy.filter(function(v){return v.metodo==="efectivo";}).reduce(function(s,v){return s+v.total;},0);
   var tTr=ventasHoy.filter(function(v){return v.metodo==="transferencia";}).reduce(function(s,v){return s+v.total;},0);
   var tCl=ventasHoy.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.netoRecibido;},0);
@@ -2649,7 +2669,7 @@ function PedidosTichi(props){
   var s3=useState(null);var ventaR=s3[0];var setVentaR=s3[1];
   var s4=useState(hoy());var fechaSel=s4[0];var setFechaSel=s4[1];
 
-  var ventasDia=ventas.filter(function(v){return v.tienda===tiendaId&&v.timestamp&&(function(){var d=new Date(v.timestamp);var ld=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);return ld===fechaSel;})();});
+  var ventasDia=ventasDeFecha(ventas,tiendaId,fechaSel,{incluirReembolsadas:true});
   var ventasDiaActivas=ventasDia.filter(function(v){return v.estadoPago!=="reembolsado";});
   var porPagar=ventasDiaActivas.filter(function(v){return v.estadoPago==="por_pagar";});
 

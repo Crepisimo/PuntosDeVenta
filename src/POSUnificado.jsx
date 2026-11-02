@@ -95,7 +95,7 @@ export default function POSUnificado({marca,tiendaId,tiendaNombre,grupos=[],orde
           el('div',{className:'posu-total'},el('span',null,'Total'),el('strong',null,peso(total))),
           el('button',{type:'button',className:'posu-charge',disabled:!articulos||procesando,onClick:()=>onCobrar('')},procesando?'Procesando…':'Cobrar'),
           el('div',{className:'posu-pay-quick'},el('button',{type:'button',disabled:!articulos||procesando,onClick:()=>onCobrar('efectivo')},'💵 Efectivo'),el('button',{type:'button',disabled:!articulos||procesando,onClick:()=>onCobrar('clip')},'💳 Clip')),
-          el('div',{className:'posu-day-short'},el('div',null,el('span',null,'Ventas del día seleccionado'),el('b',null,peso(ventasPeriodo))),el('div',null,el('span',null,'Efectivo neto*'),el('b',null,peso(efectivoPeriodo)))),
+          el('div',{className:'posu-day-short'},el('div',null,el('span',null,'Ventas · '+(fechaCorte||'fecha actual')),el('b',null,peso(ventasPeriodo))),el('div',null,el('span',null,'Efectivo neto · '+(fechaCorte||'fecha actual')),el('b',null,peso(efectivoPeriodo)))),
           onAlternarCorte&&el('button',{type:'button',className:'posu-corte-toggle',onClick:onAlternarCorte},mostrarCorte?'Ocultar corte':'Ver corte del día'),
           alertas.length>0&&el('div',{className:'posu-alert'},'⚠️ '+alertas.length+' insumos con existencias bajas')
         )
