@@ -1,0 +1,32 @@
+CREPÍSIMO / AM-BURGERS / TICHI — REVISIÓN DEL PUNTO DE VENTA
+Versión candidata de comprobación: 2 de noviembre de 2026
+
+CAMBIOS REALES
+- Las tres marcas conservan el POS unificado con sus propios colores, menús y cobros.
+- Corte de caja en una pantalla grande independiente del ticket, sin que se corte al hacer scroll.
+- Detalle de cada gasto: concepto, monto, hora y método de pago.
+- Resumen diario por sucursal: efectivo, transferencia, Clip bruto/neto y gastos.
+- Solo los gastos pagados explícitamente en efectivo se descuentan del efectivo neto; si falta método, se alerta en lugar de suponerlo.
+- Fechas y cambio de día según America/Mexico_City.
+- Comprobación OPCIONAL de fondo inicial/contado sin guardar cierres.
+- CSV de gastos desde la pantalla de corte.
+
+CONSERVADO
+- Cálculo y guardado de ventas, inventario y recetas tal como está en la versión base.
+- Modal de cobro de cada marca, métodos especiales, promociones y roles.
+- API de PIN sin alteraciones. Base de datos sin cambios ni SQL nuevo.
+
+ADVERTENCIAS
+- La pantalla de corte es una CONSULTA, no un cierre de turno contable persistido.
+- El efectivo neto NO incluye fondo inicial, ajustes, depósitos o salidas sin registrar.
+- Gastos antiguos sin medio de pago quedan identificados como sin especificar.
+- Clip neto es estimado/registrado por venta, NO depósito bancario conciliado.
+- Este ZIP no se ha desplegado en Vercel ni probado con la base de datos real.
+
+INSTALACIÓN
+1) Haz copia de seguridad del repositorio actual.
+2) Crea una rama 'pruebas' del POS y sube el contenido de este ZIP a su raíz.
+3) Confirma que el deploy en Vercel aparezca Ready.
+4) Prueba ventas, gastos de caja (efectivo y tarjeta), corte, impresora, inventario y reembolsos.
+5) Solo si esas pruebas están bien, promueve el cambio a producción.
+No ejecutes SQL.

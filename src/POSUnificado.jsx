@@ -1,5 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import './tablet.css';
+import CorteDia from './CorteDia.jsx';
+import {fechaCaja} from './corteCaja.mjs';
 
 const el = React.createElement;
 const peso = (n) => new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(Number(n)||0);
@@ -15,7 +17,7 @@ function formatKey(item){
   return JSON.stringify([item.nombre,item.precio,item.detalle||'',item.paraLlevar||'',item.recetaKey||'',item.productoCatalogoId||'',item.recetaSnapshot||null,!!item.esPromo,!!item.esDescuento,!!item.esEnvio,!!item.esEmpleado,item.extraRec||null]);
 }
 /** Vista única de venta: solo cambia el tema y los productos; no guarda inventarios ni ventas. */
-export default function POSUnificado({marca,tiendaNombre,grupos=[],orden=[],setOrden,onSeleccionar,onCobrar,onDescuento,onGasto,onPromociones,onEmpleado,onEnvio,exito,procesando,ventasPeriodo=0,efectivoPeriodo=0,fechaCorte,onCambiarFechaCorte,mostrarCorte,onAlternarCorte,datosCorte=[],alertas=[],soloNuevos=false}) {
+export default function POSUnificado({marca,tiendaId,tiendaNombre,grupos=[],orden=[],setOrden,onSeleccionar,onCobrar,onDescuento,onGasto,onPromociones,onEmpleado,onEnvio,exito,procesando,ventasPeriodo=0,efectivoPeriodo=0,fechaCorte,onCambiarFechaCorte,mostrarCorte,onAlternarCorte,datosCorte=[],ventasCorte=[],gastosCorte=[],alertas=[],soloNuevos=false}) {
   const tema=TEMAS[marca]||TEMAS.crepisimo;
   const gruposFiltrados = soloNuevos?grupos.filter(x=>x.id==='personalizados'):grupos;
   const [grupoActivo,setGrupoActivo]=useState(soloNuevos?'personalizados':(gruposFiltrados[0]?.id||''));
@@ -93,15 +95,16 @@ export default function POSUnificado({marca,tiendaNombre,grupos=[],orden=[],setO
           el('div',{className:'posu-total'},el('span',null,'Total'),el('strong',null,peso(total))),
           el('button',{type:'button',className:'posu-charge',disabled:!articulos||procesando,onClick:()=>onCobrar('')},procesando?'Procesando…':'Cobrar'),
           el('div',{className:'posu-pay-quick'},el('button',{type:'button',disabled:!articulos||procesando,onClick:()=>onCobrar('efectivo')},'💵 Efectivo'),el('button',{type:'button',disabled:!articulos||procesando,onClick:()=>onCobrar('clip')},'💳 Clip')),
-          el('div',{className:'posu-day-short'},el('div',null,el('span',null,'Ventas del periodo'),el('b',null,peso(ventasPeriodo))),el('div',null,el('span',null,'Efectivo en caja'),el('b',null,peso(efectivoPeriodo)))),
+          el('div',{className:'posu-day-short'},el('div',null,el('span',null,'Ventas del día seleccionado'),el('b',null,peso(ventasPeriodo))),el('div',null,el('span',null,'Efectivo neto*'),el('b',null,peso(efectivoPeriodo)))),
           onAlternarCorte&&el('button',{type:'button',className:'posu-corte-toggle',onClick:onAlternarCorte},mostrarCorte?'Ocultar corte':'Ver corte del día'),
-          mostrarCorte&&el('div',{className:'posu-corte'},
-            el('div',{className:'posu-corte-date'},el('button',{type:'button',onClick:()=>cambiarFecha(-1)},'‹'),el('span',null,fechaCorte||'Hoy'),el('button',{type:'button',onClick:()=>cambiarFecha(1),disabled:fechaCorte>=(new Date().toISOString().slice(0,10))},'›')),
-            datosCorte.map(v=>el('div',{key:v[0]},el('span',null,v[0]),el('b',null,peso(v[1]))))
-          ),
           alertas.length>0&&el('div',{className:'posu-alert'},'⚠️ '+alertas.length+' insumos con existencias bajas')
         )
       )
-    )
+    ),
+    mostrarCorte&&el(CorteDia,{
+      marca,tienda:tiendaId||marca,fecha:fechaCorte||fechaCaja(new Date()),
+      ventas:ventasCorte,gastos:gastosCorte,
+      onFecha:onCambiarFechaCorte,onCerrar:onAlternarCorte
+    })
   );
 }

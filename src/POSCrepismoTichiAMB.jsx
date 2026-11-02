@@ -3,6 +3,7 @@ import {apiFetch, rpc, freshId, getCurrentStaff, isAdmin} from "./secureClient.j
 import React, { useState } from "react";
 import POSUnificado from "./POSUnificado.jsx";
 import Catalogo from "./Catalogo.jsx";
+import {fechaCaja, resumenCaja} from "./corteCaja.mjs";
 
 var CLIP_RATE = 0.04176;
 var VEGETAL_EXTRA = 20;
@@ -13,11 +14,7 @@ function fmt(n){return new Intl.NumberFormat("es-MX",{style:"currency",currency:
 function fmtC(n,u){return parseFloat(Number(n).toFixed(2))+" "+u;}
 function fmtFecha(ts){var d=new Date(ts);return d.toLocaleDateString("es-MX",{day:"2-digit",month:"short"})+" "+d.toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"});}
 function hoy(){
-  var d=new Date();
-  var yyyy=d.getFullYear();
-  var mm=("0"+(d.getMonth()+1)).slice(-2);
-  var dd=("0"+d.getDate()).slice(-2);
-  return yyyy+"-"+mm+"-"+dd;
+  return fechaCaja(new Date());
 }
 function oz(n){return n*30;}
 function pp(n){return n*0.33*30;}
@@ -972,7 +969,7 @@ function ModalGasto(props){
 
   return re("div",{style:OV},re("div",{style:Object.assign({},MD,{maxHeight:"90vh",overflowY:"auto"})},
     re("div",{style:{fontSize:18,fontWeight:900,color:C.dark,marginBottom:6}},"Registrar gasto del dia"),
-    re("div",{style:{fontSize:12,color:"#888",marginBottom:14}},"Estos gastos salen del dinero de la caja de hoy y se reflejan en el corte."),
+    re("div",{style:{fontSize:12,color:"#888",marginBottom:14}},"Se registran en el corte de la sucursal. Solo los pagados en efectivo disminuyen el efectivo de caja."),
     re("div",{style:{marginBottom:14}},
       re("div",{style:LB},"Tipo *"),
       re("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
@@ -1009,7 +1006,7 @@ function ModalGasto(props){
         })
       )
     ),
-    v.tipo==="insumo"?re("div",{style:{background:C.amberL,borderRadius:10,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#555"}},"Este gasto sale de la caja de hoy y el insumo sube al inventario automaticamente."):null,
+    v.tipo==="insumo"?re("div",{style:{background:C.amberL,borderRadius:10,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#555"}},"La compra aumenta el inventario. Solo descontará efectivo si seleccionaste Efectivo como medio de pago."):null,
     v.err?re("div",{style:{fontSize:12,color:C.red,marginBottom:10,fontWeight:600}},v.err):null,
     re("div",{style:{display:"flex",gap:10}},
       re("button",{onClick:onClose,style:BS("#f0f0f0","#666")},"Cancelar"),
@@ -1301,15 +1298,15 @@ function POS(props){
   }
 
   var _hoyStr=fechaCorte;
-  var ventasHoy=ventas.filter(function(v){return v.tienda===tiendaId&&v.timestamp&&(function(){var d=new Date(v.timestamp);var ld=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);return ld===_hoyStr;})()&&v.estadoPago!=='reembolsado';});
+  var ventasHoy=ventas.filter(function(v){return v.tienda===tiendaId&&v.timestamp&&fechaCaja(v.timestamp)===_hoyStr&&v.estadoPago!=='reembolsado';});
   var tv=ventasHoy.reduce(function(s,v){return s+v.total;},0);
   var tEf=ventasHoy.filter(function(v){return v.metodo==='efectivo';}).reduce(function(s,v){return s+v.total;},0);
   var tTr=ventasHoy.filter(function(v){return v.metodo==='transferencia';}).reduce(function(s,v){return s+v.total;},0);
   var tCl=ventasHoy.filter(function(v){return v.metodo==='clip';}).reduce(function(s,v){return s+v.netoRecibido;},0);
   var tComCl=ventasHoy.filter(function(v){return v.metodo==='clip';}).reduce(function(s,v){return s+v.comisionClip;},0);
-  var gastosCajaHoy=gastos.filter(function(g){return g.seccion==='caja'&&g.timestamp&&(function(){var d=new Date(g.timestamp);var ld=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);return ld===_hoyStr;})();});
+  var gastosCajaHoy=gastos.filter(function(g){return g.tienda===tiendaId&&g.seccion==='caja'&&g.timestamp&&fechaCaja(g.timestamp)===_hoyStr;});
   var tGasCaja=gastosCajaHoy.reduce(function(s,g){return s+g.monto;},0);
-  var efCaja=tEf-tGasCaja;
+  var efCaja=resumenCaja(ventas,gastos,tiendaId,fechaCorte).efectivoNeto;
   var alertas=insumos.filter(function(i){return (i.stock||0)>0&&(i.stock||0)<=i.minimo;});
   var agotados=insumos.filter(function(i){return (i.stock||0)===0&&i.minimo>0;});
 
@@ -1382,11 +1379,12 @@ function POS(props){
   var categoriasUnificadas=grupoMenuCrep().concat([grupoCustom(props.productosNuevos)]);
   return re('div',null,
     re(POSUnificado,{
-      marca:'crepisimo',tiendaNombre:tiendaId==='centro'?'Sucursal Centro':'Sucursal San Antonio',
+      tiendaId:tiendaId,marca:'crepisimo',tiendaNombre:tiendaId==='centro'?'Sucursal Centro':'Sucursal San Antonio',
       grupos:categoriasUnificadas,soloNuevos:props.soloNuevos,orden:orden,setOrden:setOrden,
       exito:exito,procesando:procesando,ventasPeriodo:tv,efectivoPeriodo:efCaja,
       fechaCorte:fechaCorte,onCambiarFechaCorte:setFechaCorte,mostrarCorte:verCorte,
       onAlternarCorte:function(){if(isAdmin())setVerCorte(function(v){return !v;});else window.alert('El corte requiere administrador.');},
+      ventasCorte:ventas,gastosCorte:gastos,
       datosCorte:[['Ventas',tv],['Transferencia',tTr],['Clip neto',tCl],['Comisión Clip',tComCl]],
       alertas:alertas.concat(agotados),
       onSeleccionar:function(p){
@@ -2384,8 +2382,8 @@ function POSAmburger(props){
   }
 
   var hoyStr=fechaCorte;
-  var ventasHoy=ventas.filter(function(v){return v.tienda===tiendaId&&v.timestamp&&(function(){var d=new Date(v.timestamp);var ld=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);return ld===hoyStr;})()&&v.estadoPago!=="reembolsado";});
-  var gastosCajaHoy=gastos.filter(function(g){return g.tienda===tiendaId&&g.seccion==="caja"&&g.timestamp&&(function(){var d=new Date(g.timestamp);var ld=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);return ld===hoyStr;})();});
+  var ventasHoy=ventas.filter(function(v){return v.tienda===tiendaId&&v.timestamp&&fechaCaja(v.timestamp)===hoyStr&&v.estadoPago!=="reembolsado";});
+  var gastosCajaHoy=gastos.filter(function(g){return g.tienda===tiendaId&&g.seccion==="caja"&&g.timestamp&&fechaCaja(g.timestamp)===hoyStr;});
   var tv=ventasHoy.reduce(function(s,v){return s+v.total;},0);
   var tEf=ventasHoy.filter(function(v){return v.metodo==="efectivo";}).reduce(function(s,v){return s+v.total;},0);
   var tTr=ventasHoy.filter(function(v){return v.metodo==="transferencia";}).reduce(function(s,v){return s+v.total;},0);
@@ -2393,10 +2391,8 @@ function POSAmburger(props){
   var tComCl=ventasHoy.filter(function(v){return v.metodo==="clip";}).reduce(function(s,v){return s+v.comisionClip;},0);
   var tDidi=ventasHoy.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+(v.netoRecibido??v.total);},0);
   var tDidiPorPagar=ventasHoy.filter(function(v){return v.metodo==="didi"&&v.estadoPago==="por_pagar";}).reduce(function(s,v){return s+(v.netoRecibido??v.total);},0);
-    var tDidi=ventasHoy.filter(function(v){return v.metodo==="didi";}).reduce(function(s,v){return s+(v.netoRecibido??v.total);},0);
-  var tDidiPorPagar=ventasHoy.filter(function(v){return v.metodo==="didi"&&v.estadoPago==="por_pagar";}).reduce(function(s,v){return s+(v.netoRecibido??v.total);},0);
   var tGasCaja=gastosCajaHoy.reduce(function(s,g){return s+g.monto;},0);
-  var efCaja=tEf-tGasCaja;
+  var efCaja=resumenCaja(ventas,gastos,tiendaId,fechaCorte).efectivoNeto;
   var alertas=insumos.filter(function(i){return (i.stock||0)>0&&(i.stock||0)<=i.minimo;});
   var agotados=insumos.filter(function(i){return (i.stock||0)===0&&i.minimo>0;});
 
@@ -2408,10 +2404,11 @@ function POSAmburger(props){
   var methodAmb=React.useState('');var metodoAmb=methodAmb[0];var setMetodoAmb=methodAmb[1];
   return re('div',null,
     re(POSUnificado,{
-      marca:'amburger',tiendaNombre:'AM-Burgers',grupos:gruposAmb,soloNuevos:props.soloNuevos,
+      tiendaId:tiendaId,marca:'amburger',tiendaNombre:'AM-Burgers',grupos:gruposAmb,soloNuevos:props.soloNuevos,
       orden:orden,setOrden:setOrden,exito:exito,procesando:procesando,ventasPeriodo:tv,efectivoPeriodo:efCaja,
       fechaCorte:fechaCorte,onCambiarFechaCorte:setFechaCorte,mostrarCorte:verCorte,
       onAlternarCorte:function(){if(isAdmin())setVerCorte(function(v){return !v;});else window.alert('El corte requiere administrador.');},
+      ventasCorte:ventas,gastosCorte:gastos,
       datosCorte:[['Ventas',tv],['Transferencia',tTr],['Clip neto',tCl],['Comisión Clip',tComCl],['Didi pendiente',tDidiPorPagar]],
       alertas:alertas.concat(agotados),
       onSeleccionar:function(p){
@@ -2523,8 +2520,8 @@ function POSTichi(props){
   }
 
   var hoyStr=fechaCorte;
-  var ventasHoy=ventas.filter(function(v){return v.tienda===tiendaId&&v.timestamp&&(function(){var d=new Date(v.timestamp);var ld=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);return ld===hoyStr;})()&&v.estadoPago!=="reembolsado";});
-  var gastosCajaHoy=gastos.filter(function(g){return g.tienda===tiendaId&&g.seccion==="caja"&&g.timestamp&&(function(){var d=new Date(g.timestamp);var ld=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);return ld===hoyStr;})();});
+  var ventasHoy=ventas.filter(function(v){return v.tienda===tiendaId&&v.timestamp&&fechaCaja(v.timestamp)===hoyStr&&v.estadoPago!=="reembolsado";});
+  var gastosCajaHoy=gastos.filter(function(g){return g.tienda===tiendaId&&g.seccion==="caja"&&g.timestamp&&fechaCaja(g.timestamp)===hoyStr;});
   var tv=ventasHoy.reduce(function(s,v){return s+v.total;},0);
   var tEf=ventasHoy.filter(function(v){return v.metodo==="efectivo";}).reduce(function(s,v){return s+v.total;},0);
   var tTr=ventasHoy.filter(function(v){return v.metodo==="transferencia";}).reduce(function(s,v){return s+v.total;},0);
@@ -2534,7 +2531,7 @@ function POSTichi(props){
   var tMLComision=ventasHoy.filter(function(v){return v.metodo==="mercadolibre";}).reduce(function(s,v){return s+(v.comisionML||0);},0);
   var tMLPorPagar=ventasHoy.filter(function(v){return v.metodo==="mercadolibre"&&v.estadoPago==="por_pagar";}).reduce(function(s,v){return s+v.total;},0);
   var tGasCaja=gastosCajaHoy.reduce(function(s,g){return s+g.monto;},0);
-  var efCaja=tEf-tGasCaja;
+  var efCaja=resumenCaja(ventas,gastos,tiendaId,fechaCorte).efectivoNeto;
   var alertas=insumos.filter(function(i){return (i.stock||0)>0&&(i.stock||0)<=i.minimo;});
   var agotados=insumos.filter(function(i){return (i.stock||0)===0&&i.minimo>0;});
 
@@ -2614,10 +2611,11 @@ function POSTichi(props){
   var methodTichi=React.useState('');var metodoTichi=methodTichi[0];var setMetodoTichi=methodTichi[1];
   return re('div',null,
     re(POSUnificado,{
-      marca:'tichi',tiendaNombre:'Tichi insumos',grupos:gruposTichi,soloNuevos:props.soloNuevos,
+      tiendaId:tiendaId,marca:'tichi',tiendaNombre:'Tichi insumos',grupos:gruposTichi,soloNuevos:props.soloNuevos,
       orden:orden,setOrden:setOrden,exito:exito,procesando:procesando,ventasPeriodo:tv,efectivoPeriodo:efCaja,
       fechaCorte:fechaCorte,onCambiarFechaCorte:setFechaCorte,mostrarCorte:verCorte,
       onAlternarCorte:function(){if(isAdmin())setVerCorte(function(v){return !v;});else window.alert('El corte requiere administrador.');},
+      ventasCorte:ventas,gastosCorte:gastos,
       datosCorte:[['Ventas',tv],['Transferencias',tTr],['Clip neto',tCl],['Mercado Libre neto',tMLNeto],['Mercado Libre pendiente',tMLPorPagar]],
       alertas:alertas.concat(agotados),
       onSeleccionar:function(p){
